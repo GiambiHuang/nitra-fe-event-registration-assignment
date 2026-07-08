@@ -3,3 +3,4 @@ dist
 .quasar
 *.local
 .DS_Store
+.yarn*
