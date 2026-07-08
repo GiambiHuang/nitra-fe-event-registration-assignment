@@ -7,7 +7,11 @@
     "build": "quasar build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,ts,vue}": "eslint --fix"
   },
   "dependencies": {
     "@quasar/extras": "1.17.0",
@@ -24,6 +28,8 @@
     "eslint": "^10.6.0",
     "eslint-plugin-vue": "^10.9.2",
     "globals": "^17.7.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
     "sass-embedded": "1.92.0",
     "typescript": "^6.0.3",
     "unocss": "66.3.3",
