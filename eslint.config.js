@@ -1,0 +1,31 @@
+import globals from 'globals'
+import pluginVue from 'eslint-plugin-vue'
+import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
+
+export default defineConfigWithVueTs(
+  {
+    name: 'app/files-to-lint',
+    files: ['**/*.{js,ts,mts,vue}'],
+  },
+  {
+    name: 'app/files-to-ignore',
+    ignores: ['dist/**', '.quasar/**', 'node_modules/**'],
+  },
+  pluginVue.configs['flat/recommended'],
+  vueTsConfigs.recommended,
+  {
+    name: 'app/language-options',
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+  },
+  {
+    name: 'app/rules',
+    rules: {
+      'vue/multi-word-component-names': 'off',
+    },
+  },
+)
