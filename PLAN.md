@@ -12,8 +12,33 @@ type + lint gates:
   [journal 01](docs/journal/01-tooling.md).
 - **Phase 0.5 — Design tokens** _(done)_ — reconcile colors/typography against
   Figma, self-host the font. See [journal 02](docs/journal/02-design-tokens.md).
-- **Phase 1 — Data & types** — model the mocks (tickets/sessions/add-ons) and
-  the shared registration state.
+- **Phase 1 — Data & types** _(implemented, pending review — not yet
+  committed)_ — types before store, store before UI:
+  1. **Mock-data types** (`src/types/`) mirroring `event.js` / `sessions.js` /
+     `addons.js` — `Addon` modeled as a discriminated union on `category`
+     (`workshop` / `meal` / `merchandise`) so category-only fields (`sizes`,
+     `maxQuantity`, `capacity`/`date`) narrow safely instead of being optional
+     on every variant.
+  2. **Wizard-state types** — attendee form fields, selected ticket id,
+     selected session ids, per-addon selection (quantity/size). Kept as a
+     separate type family from the mock-data types: raw catalog data and the
+     user's in-progress selections are different concerns and shouldn't share
+     a shape.
+  3. **One composable-based store** (e.g. `useRegistrationStore`) holding this
+     state, shared across all 4 step components — no Pinia; consistent with
+     the cross-step-state approach already set in `CLAUDE.md`
+     (composable / provide-inject, single source of truth).
+  4. **Derived logic as separate composables** layered on the store — pricing,
+     conflict detection, per-step validity — rather than folded into the store
+     itself, so each stays independently reasoned about / testable. Store
+     owns state + actions; composables own derivations.
+  5. **No time-zone conversion in the data/grouping layer** — session/workshop
+     grouping keys come from the raw UTC ISO strings. Display assumes a fixed
+     Asia/Taipei time zone (with an on-screen indicator), handled entirely at
+     the UI layer.
+
+  Full discussion (Pinia vs. composable, and the reasoning above):
+  [journal 03](docs/journal/03-data-types-and-store.md).
 - **Phase 2 — Wizard shell** — stepper + free forward/back navigation with
   preserved state.
 - **Phase 3 — Steps 1–4** — attendee info, session selection, add-ons, review.
@@ -31,9 +56,20 @@ type + lint gates:
 | Non-type-checked TS lint rules | Fast lint; correctness typing handled by `vue-tsc`. |
 | Hand-verify every Figma color token against the existing scaffold | Most already matched — confirmed the scaffold is a real (if incomplete) implementation, not placeholders, and surfaced the 3 that genuinely differed. |
 | Named font-weight steps (`extrabold`/`bold`/`semibold`/`medium`/`regular`) instead of raw numbers | Each heading level maps to a distinct, correct weight instead of sharing one generic "bold". |
+| Native composable (module-scoped `reactive` singleton) over Pinia for the shared registration store | One wizard instance, one page, no SSR — nothing Pinia adds (multi-instance stores, SSR support, devtools time-travel) solves a real problem here; a plain composable matches the problem's actual size. |
+| Store state exposed via `readonly()`; all mutation through named actions | Single choke point for every state change — confirmed at the type level (not just Vue's runtime proxy) that direct mutation from outside the store fails to compile. |
+| Workshop conflict check compares both workshop-vs-session and workshop-vs-workshop | README only requires workshop-vs-session; checking both is more defensive and isn't coincidentally correct just because today's 2 workshops don't share a day. |
+| Merchandise `maxQuantity` enforced by the UI control's `max`, not the store | Keeps the store decoupled from catalog data (`addons.js`) — it never needs to know the bound, only receive already-valid values. |
+| "Submit was attempted and failed" is local Step 4 UI state, not shared/persisted | Simpler UX: leaving Step 4 and returning is treated as a fresh attempt. Fewer state fields to reason about — no shared flag needed at all. |
+| Store's action functions get full JSDoc (`@param`/`@returns`) | They're the store's entire public API — every step component calls through them, so complete docs pay off in IDE tooltips, per the `CLAUDE.md` composable-documentation rule. |
+| Registration state persisted to `sessionStorage` (not `localStorage`), auto-saved via a deep watcher | Survives a page refresh within the tab (the actual trigger) without accumulating stale drafts across browser sessions the way `localStorage` would. `Set` fields are converted to arrays only at the storage boundary — the in-memory type is unchanged. |
+
+Full walk-through against concrete test scenarios:
+[journal 03](docs/journal/03-data-types-and-store.md#test-case-validation-against-registrationstate).
 
 Full reasoning per decision: [journal 01](docs/journal/01-tooling.md#key-decisions),
-[journal 02](docs/journal/02-design-tokens.md#findings--color-tokens).
+[journal 02](docs/journal/02-design-tokens.md#findings--color-tokens),
+[journal 03](docs/journal/03-data-types-and-store.md).
 
 ## 3. Dependencies & why
 

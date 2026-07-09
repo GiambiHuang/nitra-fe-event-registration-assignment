@@ -12,8 +12,8 @@ Vue 3.5 (Composition API, `<script setup>`) · Quasar v2.18 (`@quasar/app-vite`)
 yarn            # install
 yarn dev        # dev server @ http://localhost:9001
 yarn build      # production build
-yarn lint       # ESLint  — confirm script name in package.json
-yarn typecheck  # vue-tsc --noEmit — confirm script name
+yarn lint       # ESLint
+yarn typecheck  # vue-tsc --noEmit
 ```
 
 Run `lint` + `typecheck` before every commit. Pre-commit and pre-push hooks enforce this — never bypass with `--no-verify`.
