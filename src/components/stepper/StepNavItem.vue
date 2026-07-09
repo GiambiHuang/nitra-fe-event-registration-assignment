@@ -25,7 +25,7 @@ const emit = defineEmits<{
         v-if="step.status === 'error'"
         src="~assets/icons/exclamation-icon.svg"
         alt="error"
-        class="w-[14px] h-auto"
+        class="w-[2px] h-auto"
       >
       <img
         v-else-if="step.status === 'complete'"

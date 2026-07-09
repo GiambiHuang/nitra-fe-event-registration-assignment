@@ -50,6 +50,14 @@ export const layoutShortcuts = [{
   'page-container': 'w-full max-w-[1440px] px-[120px]',
 }]
 
+export const outlineShortcuts = [{
+  'border-selected': 'outline-2 outline-[var(--border-brand-emphasis)] outline-solid -outline-offset-2'
+}]
+
+export const shadowShortcuts = [{
+  'shadow-card': 'shadow-[0px_1px_3px_0px_#0000000A,0px_4px_16px_0px_#00000014]',
+}]
+
 export const breakpoints = {
   tablet: '768px',
   desktop: '1024px',
@@ -79,5 +87,7 @@ export const uiExtendTheme = (theme) => ({
 export const uiShortcuts = [
   ...typographyShortcuts,
   ...layoutShortcuts,
+  ...outlineShortcuts,
+  ...shadowShortcuts,
   ...semanticShortcuts,
 ]

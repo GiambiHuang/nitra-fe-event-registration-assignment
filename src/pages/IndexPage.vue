@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import Success from 'src/components/review/Success.vue'
+import StepContent from 'src/components/stepper/StepContent.vue'
 import WizardStepper from 'src/components/stepper/WizardStepper.vue'
+import WizardFooter from 'src/components/stepper/WizardFooter.vue'
+import AttendeeInfo from 'src/components/step/attendee/AttendeeInfo.vue'
 import { useWizardNavigation } from 'src/composables/useWizardNavigation'
 
-const { state, goBack, goNext, goToStep } = useWizardNavigation()
+const { state, goToStep } = useWizardNavigation()
 </script>
 
 <template>
@@ -17,23 +20,10 @@ const { state, goBack, goNext, goToStep } = useWizardNavigation()
       :error-steps="[]"
       @change="goToStep"
     />
-    <div class="flex items-center justify-center flex-1 min-h-0 overflow-y-auto w-full">
-      <div class="page-container">
-        Content
-      </div>
-    </div>
-    <!-- Temporary, for verifying useWizardNavigation before StepContainer exists -->
-    <div class="h-[72px] flex items-center justify-center flex-shrink-0 box-content border-0 border-t divider-default border-solid">
-      <div class="flex items-center justify-between page-container box-border">
-        <q-btn
-          label="Back"
-          @click="goBack"
-        />
-        <q-btn
-          label="Next"
-          @click="goNext"
-        />
-      </div>
-    </div>
+    <StepContent>
+      <AttendeeInfo v-if="state.currentStep === 1" />
+      <!-- Sessions/Addons/Review added as each is built -->
+    </StepContent>
+    <WizardFooter />
   </div>
 </template>
