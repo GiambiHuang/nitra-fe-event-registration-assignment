@@ -69,6 +69,15 @@ type + lint gates:
     share; `groupSessionsByDate`/`formatSessionTime`/`timeConflicts` added to
     `utils/` (the latter generic, for Step 3's workshop conflicts to reuse).
     Full discussion: [journal 07](docs/journal/07-step2-sessions.md).
+  - **Step 3 (done)** — add-ons: category tabs (Workshops / Meal Packages /
+    Merchandise), workshop conflicts checked both against Step 2's selected
+    sessions and Step 3's own selected workshops (and the reverse, on Step
+    2's side — see journal 08), merchandise quantity/size controls, shipping
+    banner, and a live Order Summary (shared `components/order-summary/`,
+    used again in Step 4). `calculateOrderSummary`/`formatCurrency` added to
+    `utils/`, ahead of Phase 4's own validation work, since Step 3's running
+    total needs the pricing math now. Full discussion:
+    [journal 08](docs/journal/08-step3-addons.md).
 - **Phase 4 — Cross-cutting logic** — pricing, time-conflict detection, unified
   validation.
 - **Phase 5 — Polish** — design-fidelity pass, states, transitions.
@@ -110,6 +119,11 @@ type + lint gates:
 | `createAsyncResource` factored out of `useEventInfo` when `useSessions` needed the identical shape | Extracted on the second concrete instance, not after a third — both copies existed in the same sitting, so the shared shape wasn't speculative. |
 | `timeConflicts.ts`'s overlap check is typed against a minimal `{ id, date, endDate }` shape, not `Session` specifically | `WorkshopAddon` has the same shape and Step 3 will need the identical overlap math for workshop-vs-session/workshop-vs-workshop conflicts — built reusable once instead of duplicated per step. |
 | A conflicting session's card is fully `disabled` in Step 2, not just visually warned | Stricter than a literal README reading (conflicts are framed as selectable-but-flagged-at-Step-4); this is what was actually built. Consequence: two mutually-conflicting sessions can never both end up selected through normal clicking, since selecting one disables the other before it can be clicked. |
+| Session-vs-selected-workshop conflict is a symmetric check: `SessionSelection.vue` and `AddonsSelection.vue` each check against the other's selections | Fixed a real gap — only the workshop side originally checked against sessions, so selecting a workshop that overlapped an unselected session left that session showing as available on Step 2. |
+| `activeDate`/day-tab default is a `computed` fallback (`manualPick ?? groups[0]?.date`), not a `ref` + `watch` copying `groups[0]` into it | Fixed a real bug: the `watch` version only fired on the loading→success *transition*; re-entering Step 2 after sessions were already resolved from an earlier visit (module-scoped cache) left no tab selected at all, since there was no transition left to fire on. Matches `CLAUDE.md`'s "derive with `computed`, don't sync with `watch`" rule — this bug is exactly what that rule exists to prevent. |
+| `AddonCard.vue` handles both workshops and meals (branches on `addon.category` internally for the time/conflict/capacity bits); merchandise gets its own `MerchandiseCard.vue` | Workshops/meals share the same interaction model (click the card to toggle) that `AddonCard` already generalizes; merchandise's quantity stepper + size `<select>` are real nested interactive controls, which can't live inside one big clickable `<button>` the way the other two do. |
+| VIP's 10% workshop discount is its own summary line, not folded into each workshop's displayed price | Keeps the discount visible/auditable rather than silently changing per-item numbers — matches the README's "ticket price, add-ons, VIP discount, total" as separate concerns. |
+| `calculateOrderSummary`/`formatCurrency` built now (nominally "Phase 4 — pricing") rather than deferred | Step 3's own Order Summary requirement needs a live running total immediately; the phase label was about when validation/pricing get hardened, not a hard gate on when the math can exist. |
 
 Full walk-through against concrete test scenarios:
 [journal 03](docs/journal/03-data-types-and-store.md#test-case-validation-against-registrationstate).
@@ -119,7 +133,8 @@ Full reasoning per decision: [journal 01](docs/journal/01-tooling.md#key-decisio
 [journal 03](docs/journal/03-data-types-and-store.md),
 [journal 04](docs/journal/04-data-services.md),
 [journal 06](docs/journal/06-stepper-components.md),
-[journal 07](docs/journal/07-step2-sessions.md).
+[journal 07](docs/journal/07-step2-sessions.md),
+[journal 08](docs/journal/08-step3-addons.md).
 
 ## 3. Dependencies & why
 
