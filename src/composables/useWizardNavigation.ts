@@ -2,9 +2,18 @@ import { reactive, readonly, watch } from 'vue'
 
 const STORAGE_KEY = 'nitra:wizard-navigation'
 const MIN_STEP = 1
-const MAX_STEP = 4
 
-/** The wizard's 4 steps: Attendee Info, Session Selection, Add-ons, Review & Submit. */
+/** The wizard's 4 steps, in order. The single source of truth for both the step count and their display labels — anything needing either (the stepper UI, `MAX_STEP` below) reads from this instead of hardcoding its own copy. */
+export const WIZARD_STEPS: { index: WizardStep; label: string }[] = [
+  { index: 1, label: 'Attendee Info' },
+  { index: 2, label: 'Sessions' },
+  { index: 3, label: 'Add-ons' },
+  { index: 4, label: 'Review' },
+]
+
+// Safe: WIZARD_STEPS is fixed at exactly 4 entries, matching WizardStep's 1-4 range.
+const MAX_STEP = WIZARD_STEPS.length as WizardStep
+
 export type WizardStep = 1 | 2 | 3 | 4
 
 interface WizardNavigationState {

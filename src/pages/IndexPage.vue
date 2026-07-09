@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import Success from 'src/components/review/Success.vue'
+import WizardStepper from 'src/components/stepper/WizardStepper.vue'
 import { useWizardNavigation } from 'src/composables/useWizardNavigation'
 
-const { state, goBack, goNext } = useWizardNavigation()
+const { state, goBack, goNext, goToStep } = useWizardNavigation()
 </script>
 
 <template>
@@ -11,11 +12,11 @@ const { state, goBack, goNext } = useWizardNavigation()
     v-else
     class="h-full flex flex-col"
   >
-    <div class="flex items-center justify-center flex-shrink-0">
-      <div class="page-container">
-        Stepper
-      </div>
-    </div>
+    <WizardStepper
+      :current-step="state.currentStep"
+      :error-steps="[]"
+      @change="goToStep"
+    />
     <div class="flex items-center justify-center flex-1 min-h-0 overflow-y-auto w-full">
       <div class="page-container">
         Content
