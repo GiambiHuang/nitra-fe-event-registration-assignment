@@ -1,2 +1,7 @@
 @import 'src/css/colors.scss';
 @import 'src/css/typography.scss';
+
+body {
+  font-family: 'Inter Variable', sans-serif;
+  color: var(--text-neutral-default);
+}
