@@ -22,11 +22,12 @@ Run `lint` + `typecheck` before every commit. Pre-commit and pre-push hooks enfo
 
 ```
 src/
-  components/     # presentational + composed UI, decomposed by responsibility
+  components/     # presentational + composed UI, nested by domain (see below)
   composables/    # reactive logic (state, derivations, rules) — the app's brain
   services/       # data access — the only files that import from mocks/; async-shaped
   utils/          # pure, framework-free helpers (format, date math, grouping)
   types/          # shared TS types / interfaces
+  layouts/        # route-level layout shells (Quasar-reserved alias) — e.g. Main.vue
   pages/          # route-level views
   mocks/          # provided data — read by services/ only; never hardcode its values in components
   unocss/         # design-token system (semantic.js is source of truth)
@@ -34,6 +35,27 @@ src/
 ```
 
 Keep the boundary sharp: **services** fetch (today: read local mocks; async-shaped so a real API is a services-only change), **utils** transform that data (pure, testable), **composables** own reactive state and wire services/utils to the view, **components** render and delegate. Logic does not live in templates or in `.vue` script blocks beyond binding glue. Components and composables never import from `mocks/` directly — always through `services/`.
+
+**`components/` is nested by domain, not left flat:**
+
+```
+components/
+  layout/         # chrome used by a layout shell — MainHeader.vue, etc.
+  stepper/        # wizard navigation — StepContainer.vue, WizardStepper.vue, WizardFooter.vue
+  attendee/       # Step 1 — TicketCard.vue, AttendeeForm.vue
+  sessions/       # Step 2 — SessionCard.vue, DaySection.vue
+  addons/         # Step 3 — AddonCard.vue, ShippingBanner.vue
+  order-summary/  # shared by Step 3 + Step 4 — OrderSummary.vue
+  review/         # Step 4 — ReviewSection.vue, Success.vue (post-submit confirmation)
+```
+
+`components/layout/` naming is paired to the layout it belongs to, not a
+generic prefix: `MainHeader.vue` belongs to `src/layouts/Main.vue`. If a
+second layout is ever added (e.g. `Auth.vue`), its header would be
+`AuthHeader.vue`, not a shared `AppHeader.vue` — each layout owns its own
+chrome.
+
+One folder per domain (matches the README's step boundaries), not per component type (no blanket `cards/`/`forms/`) — keeps everything for one step/commit together. `layout/` (singular, under `components/`) holds pieces *used by* a layout; `layouts/` (plural, top-level, Quasar-reserved) holds the routable layout shells themselves — don't conflate the two.
 
 ## Vue conventions
 

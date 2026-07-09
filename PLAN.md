@@ -44,12 +44,35 @@ type + lint gates:
   [journal 03](docs/journal/03-data-types-and-store.md).
   Full discussion (service layer, async-vs-sync, a type-widening gap found
   and fixed along the way): [journal 04](docs/journal/04-data-services.md).
-- **Phase 2 — Wizard shell** — stepper + free forward/back navigation with
-  preserved state.
-- **Phase 3 — Steps 1–4** — attendee info, session selection, add-ons, review.
+- **Phase 2 — Wizard shell** _(done)_ — stepper + free forward/back
+  navigation with preserved state. `MainHeader`/`Main` layout landed; the
+  stepper/step-container shell built by hand (not by me) with review after
+  each piece. Plain flexbox for the fixed-stepper / scrollable-middle /
+  fixed-footer shape (no nested `q-layout`), and the post-submit success
+  screen is a sibling of the step container, not a 5th step. Full discussion:
+  [journal 05](docs/journal/05-wizard-shell.md).
+  - `WizardStepper`/`StepNavItem`/`StepContent`/`WizardFooter` built out:
+    step status modeled as a discriminated union
+    (`upcoming`/`active`/`complete`/`error`) resolved through a lookup table,
+    not additive class-pushing — the latter caused a real cascade-order bug
+    (see below). `stepper/` components never import each other or reach into
+    domain folders; composition happens in `IndexPage.vue`. Full discussion:
+    [journal 06](docs/journal/06-stepper-components.md).
+- **Phase 3 — Steps 1–4** _(in progress)_ — attendee info, session selection,
+  add-ons, review. Started with Step 1 (ticket selection + attendee form).
 - **Phase 4 — Cross-cutting logic** — pricing, time-conflict detection, unified
   validation.
 - **Phase 5 — Polish** — design-fidelity pass, states, transitions.
+  - **To revisit here:** `text-h1`–`text-h4` already have a built-in RWD
+    effect from the starter scaffold — `src/css/typography.scss` swaps the
+    `--font-size-h*`/`--line-height-h*` CSS variables at `max-width: 1023px`
+    (h4: 20px/24px → 18px/24px, etc.), so those shortcuts shrink automatically
+    below the `desktop: 1024px` breakpoint already defined in
+    `src/unocss/index.js`. `subtitle1`/`subtitle2`/`body-*` have no such
+    media query and stay fixed. Noted 2026-07-09 when a heading looked
+    smaller than expected below 1024px — not a bug, but worth deciding
+    deliberately (keep / extend to more tokens / override) once the RWD pass
+    actually happens instead of leaving it as an unexamined scaffold default.
 
 ## 2. Key decisions
 
@@ -70,6 +93,10 @@ type + lint gates:
 | Registration state persisted to `sessionStorage` (not `localStorage`), auto-saved via a deep watcher | Survives a page refresh within the tab (the actual trigger) without accumulating stale drafts across browser sessions the way `localStorage` would. `Set` fields are converted to arrays only at the storage boundary — the in-memory type is unchanged. |
 | `src/services/` data-access layer, `async`-shaped, built in Phase 1 rather than deferred | Real chance this becomes an actual API integration later; async-shaped services mean that change touches only the service internals, not every caller. Doing it now (alongside `src/types/`) avoids a second refactor once components already depend on `mocks/` directly. |
 | `Session`'s mock-to-type mapping narrows only the `track` field; `Addon`'s casts the whole array | Plain `.js` mock literals widen string-literal fields to `string` under TS inference (verified empirically, not assumed) — `Session` isn't a union so a per-field narrow cast keeps every other field structurally checked; `Addon` is a discriminated union where the equivalent precise fix needs a distributive `Omit` utility type, judged not worth it for a fixed, hand-verified fixture. |
+| Step status (`upcoming`/`active`/`complete`/`error`) as a discriminated union + `STATUS_STYLES` lookup table, not 3 booleans + additive class-pushing | The additive version caused a real bug: two classes setting the same CSS property (base state + error) can both be present on one element, and cascade order (declaration order in `semantic.js`, not `:class` order) decides which wins — `text-danger` silently lost every time. A lookup table keyed by one mutually-exclusive status makes that impossible by construction. |
+| `WIZARD_STEPS` (index + label for all 4 steps) lives in `useWizardNavigation`, not in `WizardStepper` | Single source of truth for the step count — `MAX_STEP` is derived from its length instead of a separately hardcoded `4`, so the two can't drift out of sync if a step is ever added/removed. |
+| `stepper/` components don't import each other or reach into domain folders (`attendee/`, `sessions/`, ...); composition happens in `IndexPage.vue` | Keeps generic wizard chrome (`StepContainer`, `StepContent`, `WizardFooter`, `WizardStepper`/`StepNavItem`) reusable and decoupled from what any given step actually renders — the step→component lookup lives at the page level, not inside the chrome. `StepContainer` ended up deleted entirely once it held zero logic beyond a wrapper `<div>`. |
+| Discussed (not enforced): domain-folder components matching the plain-noun style of their siblings (`SessionCard`, `AddonCard`, `ReviewSection`) rather than a `Step`-qualified name (`StepAttendee`) | `Step` reads as a `stepper/`-chrome concept; the domain folder already encodes which step owns the file. Step 1's own component ultimately landed as `AttendeeStep.vue` — noted as the build-time call, not retrofitted to match. |
 
 Full walk-through against concrete test scenarios:
 [journal 03](docs/journal/03-data-types-and-store.md#test-case-validation-against-registrationstate).
@@ -77,7 +104,8 @@ Full walk-through against concrete test scenarios:
 Full reasoning per decision: [journal 01](docs/journal/01-tooling.md#key-decisions),
 [journal 02](docs/journal/02-design-tokens.md#findings--color-tokens),
 [journal 03](docs/journal/03-data-types-and-store.md),
-[journal 04](docs/journal/04-data-services.md).
+[journal 04](docs/journal/04-data-services.md),
+[journal 06](docs/journal/06-stepper-components.md).
 
 ## 3. Dependencies & why
 

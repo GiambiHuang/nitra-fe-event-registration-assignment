@@ -86,4 +86,17 @@ On Node 22, on the current tree:
 - `@vue/eslint-config-typescript` vs a hand-wired `typescript-eslint` +
   `@eslint/js` config (more explicit, plus ignoring provided `src/mocks` /
   `src/unocss`) — evaluated, not yet decided.
-- Pinning the exact Node `22.17.0` via a version-manager file.
+
+## Correction (added later)
+
+- The `@/*` path alias mentioned above was only ever wired into
+  `tsconfig.json` — it was never added to Vite's `resolve.alias`, so it
+  type-checked fine but silently failed to resolve at runtime. Discovered
+  while building the Phase 2 layout/router (an `@/layouts/Main.vue` import
+  worked in the editor but broke in the dev server). Rather than fix Vite to
+  match, removed `@/*` from `tsconfig.json` entirely — the project uses
+  Quasar's built-in `src/*` alias (already wired into both Vite and
+  `tsconfig.json`) exclusively now, so there's one working alias instead of
+  two, one of which only worked in the type checker.
+- Node `22.17.0` has since been pinned via `.nvmrc` (see the `.editorconfig`
+  chore commit) — no longer open.

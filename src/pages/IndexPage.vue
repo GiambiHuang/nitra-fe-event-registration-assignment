@@ -1,18 +1,29 @@
 <script setup lang="ts">
-// Your implementation starts here
+import Success from 'src/components/review/Success.vue'
+import StepContent from 'src/components/stepper/StepContent.vue'
+import WizardStepper from 'src/components/stepper/WizardStepper.vue'
+import WizardFooter from 'src/components/stepper/WizardFooter.vue'
+import AttendeeInfo from 'src/components/step/attendee/AttendeeInfo.vue'
+import { useWizardNavigation } from 'src/composables/useWizardNavigation'
+
+const { state, goToStep } = useWizardNavigation()
 </script>
 
 <template>
-  <q-layout>
-    <q-page-container>
-      <q-page padding>
-        <h1 class="text-h3 text-neutral q-mb-md">
-          Event Registration Wizard
-        </h1>
-        <p class="text-neutral-muted">
-          Start building your registration wizard here.
-        </p>
-      </q-page>
-    </q-page-container>
-  </q-layout>
+  <Success v-if="state.isComplete" />
+  <div
+    v-else
+    class="h-full flex flex-col"
+  >
+    <WizardStepper
+      :current-step="state.currentStep"
+      :error-steps="[]"
+      @change="goToStep"
+    />
+    <StepContent>
+      <AttendeeInfo v-if="state.currentStep === 1" />
+      <!-- Sessions/Addons/Review added as each is built -->
+    </StepContent>
+    <WizardFooter />
+  </div>
 </template>

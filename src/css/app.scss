@@ -1,6 +1,19 @@
 @import 'src/css/colors.scss';
 @import 'src/css/typography.scss';
 
+// UnoCSS's preset doesn't inject a global box-sizing reset on its own —
+// confirmed by inspecting the compiled preflight CSS, box-sizing is
+// entirely opt-in per element via the box-border/box-content utilities
+// otherwise. Without this, padding/border add on top of a width/max-width
+// constraint (browser default is content-box) instead of being included in
+// it, which is almost never what's wanted when combining padding with
+// max-w-* utilities like page-container.
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
   font-family: 'Inter Variable', sans-serif;
   color: var(--text-neutral-default);

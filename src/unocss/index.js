@@ -13,7 +13,9 @@ export const fontWeight = {
   bold: '680',
   semibold: '600',
   medium: '550',
+  medium500: '500',
   regular: '485',
+  regular400: '400',
 }
 
 export const lineHeight = {
@@ -38,6 +40,22 @@ export const typographyShortcuts = [{
   'text-body-sm': 'text-[length:var(--font-size-sm)] line-height-[var(--line-height-sm)] font-regular',
   'text-body-sm-medium': 'text-[length:var(--font-size-sm)] line-height-[var(--line-height-sm)] font-medium',
   'text-body-xs': 'text-[length:var(--font-size-xs)] line-height-[var(--line-height-xs)] font-regular',
+}]
+
+// The page's max-content-width + horizontal-padding wrapper, used anywhere
+// content needs to line up with the page's 1440px content column (header,
+// stepper, step content, footer, ...). RWD variants can extend this string
+// later (e.g. `lt-tablet:px-6`) without touching any call site.
+export const layoutShortcuts = [{
+  'page-container': 'w-full max-w-[1440px] px-[120px]',
+}]
+
+export const outlineShortcuts = [{
+  'border-selected': 'outline-2 outline-[var(--border-brand-emphasis)] outline-solid -outline-offset-2'
+}]
+
+export const shadowShortcuts = [{
+  'shadow-card': 'shadow-[0px_1px_3px_0px_#0000000A,0px_4px_16px_0px_#00000014]',
 }]
 
 export const breakpoints = {
@@ -68,5 +86,8 @@ export const uiExtendTheme = (theme) => ({
 
 export const uiShortcuts = [
   ...typographyShortcuts,
+  ...layoutShortcuts,
+  ...outlineShortcuts,
+  ...shadowShortcuts,
   ...semanticShortcuts,
 ]
