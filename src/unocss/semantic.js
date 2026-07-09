@@ -179,7 +179,7 @@ export const semanticColors = {
         active: blue[200],
       },
       subtle: {
-        rest: 'white',
+        rest: 'rgba(237, 246, 253, 1)',
         hover: blue[50],
         active: blue[100],
       },
@@ -246,7 +246,7 @@ export const semanticColors = {
     info: {
       emphasis: blue[500],
       muted: blue[200],
-      opacity: gray[100],
+      opacity: 'rgba(26, 126, 199, 0.5)',
       quiet: blue[50],
     },
     warning: {

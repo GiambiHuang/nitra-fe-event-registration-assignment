@@ -7,10 +7,11 @@ const sessionTimeFormatter = new Intl.DateTimeFormat('en-US', {
   timeZone: VENUE_TIME_ZONE,
 })
 
-const MONTH_LABELS = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-]
+const sessionDateFormatFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  timeZone: VENUE_TIME_ZONE,
+})
 
 /**
  * Formats a session's UTC start/end timestamps as a local time range, fixed
@@ -28,13 +29,14 @@ export function formatSessionTimeRange(startIso: string, endIso: string): string
 }
 
 /**
- * Formats a `groupSessionsByDate` day key (`YYYY-MM-DD`) for display, e.g.
- * "Nov 15". No time-zone conversion needed — the key has no time-of-day
- * component to convert, unlike session start/end times.
- * @param dateKey - A day group's `date`, as produced by `groupSessionsByDate`.
+ * Formats a date for display, fixed to the venue's Asia/Taipei time zone
+ * like `formatSessionTimeRange`. Accepts either a `groupSessionsByDate` day
+ * key (`YYYY-MM-DD` — parsed as UTC midnight, which is still the same
+ * calendar day once shifted to Taipei for every date in this dataset) or a
+ * full UTC ISO timestamp (e.g. a workshop's `date`/`endDate`).
+ * @param dateOrKey - A day group's `date`, or a full UTC ISO timestamp.
  * @returns e.g. "Nov 15".
  */
-export function formatSessionDate(dateKey: string): string {
-  const [, month, day] = dateKey.split('-')
-  return `${MONTH_LABELS[Number(month) - 1]} ${Number(day)}`
+export function formatSessionDate(dateOrKey: string): string {
+  return sessionDateFormatFormatter.format(new Date(dateOrKey))
 }

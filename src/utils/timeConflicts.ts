@@ -21,16 +21,19 @@ export function timeRangesOverlap(a: TimeRange, b: TimeRange): boolean {
  * The ids of items in `candidates` that overlap in time with at least one of
  * `selected` — used for Step 2's visual conflict warning (selection itself
  * stays free per the README; actual blocking validation happens at Step 4
- * submit) and will back Step 3's workshop-vs-session/workshop-vs-workshop
- * check the same way. An item is never considered in conflict with itself.
+ * submit) and Step 3's workshop conflicts. `candidates`/`selected` can be
+ * different types (e.g. workshops checked against selected sessions) as long
+ * as both have a stable `id` and a UTC time range — Step 3 also calls this a
+ * second time with both args as workshops, for the workshop-vs-workshop
+ * check. An item is never considered in conflict with itself.
  * @param candidates - Items to check (must have a stable `id`).
  * @param selected - The items currently selected.
  * @returns The ids of `candidates` entries that conflict with `selected`.
  */
-export function findConflictingIds<T extends TimeRange & { id: string }>(
-  candidates: T[],
-  selected: T[],
-): Set<string> {
+export function findConflictingIds<
+  Candidate extends TimeRange & { id: string },
+  Selected extends TimeRange & { id: string },
+>(candidates: Candidate[], selected: Selected[]): Set<string> {
   const conflicting = new Set<string>()
   for (const candidate of candidates) {
     const conflicts = selected.some(

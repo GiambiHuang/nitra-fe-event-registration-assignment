@@ -1,38 +1,50 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useSessions } from 'src/composables/useSessions'
+import { useAddons } from 'src/composables/useAddons'
 import { useRegistrationStore } from 'src/composables/useRegistrationStore'
 import { groupSessionsByDate } from 'src/utils/groupSessionsByDate'
 import { formatSessionDate } from 'src/utils/formatSessionTime'
 import { findConflictingIds } from 'src/utils/timeConflicts'
+import type { WorkshopAddon } from 'src/types/addon'
 import DaySection from './DaySection.vue'
 
 const { resource } = useSessions()
+const { resource: addonsResource } = useAddons()
 const { state, toggleSession } = useRegistrationStore()
 
 const sessionsByDate = computed(() =>
   resource.value.status === 'success' ? groupSessionsByDate(resource.value.data) : [],
 )
 
-// Checked against every session, not just the active day's — conflicts
-// can't actually cross a calendar day in this dataset, but there's no
-// reason to couple the check to which tab happens to be open.
+// A session is in conflict if it overlaps another selected session, or a
+// selected Step 3 workshop — the reverse of AddonsSelection.vue's workshop
+// check. Without the workshop half, selecting a workshop that overlaps an
+// unselected session left that session showing as available when it isn't.
 const conflictingSessionIds = computed(() => {
   if (resource.value.status !== 'success') return new Set<string>()
   const allSessions = resource.value.data
   const selectedSessions = allSessions.filter(session => state.selectedSessionIds.has(session.id))
-  return findConflictingIds(allSessions, selectedSessions)
+  const sessionVsSession = findConflictingIds(allSessions, selectedSessions)
+
+  if (addonsResource.value.status !== 'success') return sessionVsSession
+  const selectedWorkshops = addonsResource.value.data.filter(
+    (addon): addon is WorkshopAddon => addon.category === 'workshop' && state.selectedWorkshopIds.has(addon.id),
+  )
+  const sessionVsWorkshop = findConflictingIds(allSessions, selectedWorkshops)
+
+  return new Set([...sessionVsSession, ...sessionVsWorkshop])
 })
 
-const activeDate = ref<string>()
+const manuallySelectedDate = ref<string>()
 
-// Default to the first day once sessions load — there's nothing to select
-// before that, and landing on Day 1 reads better than no tab being active.
-watch(sessionsByDate, groups => {
-  if (activeDate.value === undefined && groups.length > 0) {
-    activeDate.value = groups[0]?.date
-  }
-})
+// Falls back to the first day until the user actively picks a tab. A plain
+// derived computed, not a watch copying groups[0]'s date into a separate
+// ref — that version only fired on the loading→success *transition*, so
+// re-entering Step 2 after sessions were already cached from an earlier
+// visit (module-scoped cache, resolved instantly) left no tab selected at
+// all, since there was no transition left to watch for.
+const activeDate = computed(() => manuallySelectedDate.value ?? sessionsByDate.value[0]?.date)
 
 const activeGroup = computed(() => sessionsByDate.value.find(group => group.date === activeDate.value))
 </script>
@@ -57,7 +69,7 @@ const activeGroup = computed(() => sessionsByDate.value.find(group => group.date
           type="button"
           class="flex items-center justify-center text-subtitle2 border-0 outline-0 font-[13px] h-8 w-[83px] rounded-lg cursor-pointer"
           :class="group.date === activeDate ? 'bg-brand-emphasis-rest text-inverse' : 'border-transparent text-neutral-muted'"
-          @click="activeDate = group.date"
+          @click="manuallySelectedDate = group.date"
         >
           {{ formatSessionDate(group.date) }}
         </button>

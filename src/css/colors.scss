@@ -10,7 +10,7 @@
 
   /* Brand text */
   --text-brand-default: #2E5E60;
-  --text-brand-emphasis: #1E3C3E;
+  --text-brand-emphasis: #264D4F;
   --text-brand-muted: #4A979B;
 
   /* Brand background */
@@ -35,6 +35,6 @@
   /* Brand border */
   --border-brand-emphasis: #264D4F;
   --border-brand-muted: #86C2C5;
-  --border-brand-opacity: rgba(58, 118, 121, 0.5);
+  --border-brand-opacity: hsla(205, 77%, 44%, 0.5);
   --border-brand-quiet: #CBE5E6;
 }
