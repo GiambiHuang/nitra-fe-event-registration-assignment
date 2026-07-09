@@ -284,6 +284,7 @@ export const semanticTextShortcut = {
   'text-info': 'text-[var(--text-info-default)]',
   'text-info-emphasis': 'text-[var(--text-info-emphasis)]',
   'text-warning': 'text-[var(--text-warning-default)]',
+  'text-warning-default': 'text-[var(--text-warning-default)]',
   'text-warning-emphasis': 'text-[var(--text-warning-emphasis)]',
 }
 

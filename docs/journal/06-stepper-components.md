@@ -122,7 +122,7 @@ scroll container is a known flexbox+overflow trap (the content's top edge
 can end up unreachable via scroll). `justify-center` was a no-op anyway
 (the single child is already `w-full`).
 
-## Naming: discussed matching domain folders' plain-noun style
+## Naming: domain folders match their siblings' plain-noun style
 
 Raised while starting Phase 3, for Step 1's orchestrating component
 (composing ticket selection + the attendee form together): none of the
@@ -131,6 +131,6 @@ existing domain-folder components carry a `Step`-qualified name
 `Success`) — the folder itself (`sessions/`, `addons/`, `review/`) already
 encodes which step owns the file, so `Step` reads more like a `stepper/`
 chrome concept (`StepContainer`, `StepContent`, `StepNavItem`) than a domain
-one. Recommendation was to match the sibling pattern; the actual file landed
-as `AttendeeStep.vue` instead — the builder's call once real work started,
-not retrofitted here to match the recommendation.
+one. Landed as `AttendeeInfo.vue` — named after what the step actually is
+(`WIZARD_STEPS`' `'Attendee Info'` label), not a generic `*Step` suffix. Each
+domain's orchestrating component follows this same rule going forward.

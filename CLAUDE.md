@@ -42,11 +42,13 @@ Keep the boundary sharp: **services** fetch (today: read local mocks; async-shap
 components/
   layout/         # chrome used by a layout shell — MainHeader.vue, etc.
   stepper/        # wizard navigation — StepContainer.vue, WizardStepper.vue, WizardFooter.vue
-  attendee/       # Step 1 — TicketCard.vue, AttendeeForm.vue
-  sessions/       # Step 2 — SessionCard.vue, DaySection.vue
-  addons/         # Step 3 — AddonCard.vue, ShippingBanner.vue
+  ui/             # generic, step-agnostic UI primitives — FormInput.vue, etc.
+  step/           # Step 1-4 domain content, one folder per step
+    attendee/       # Step 1 — TicketCard.vue, AttendeeForm.vue, AttendeeInfo.vue
+    sessions/       # Step 2 — SessionCard.vue, DaySection.vue, ...
+    addons/         # Step 3 — AddonCard.vue, ShippingBanner.vue, ...
+    review/         # Step 4 — ReviewSection.vue, Success.vue, ...
   order-summary/  # shared by Step 3 + Step 4 — OrderSummary.vue
-  review/         # Step 4 — ReviewSection.vue, Success.vue (post-submit confirmation)
 ```
 
 `components/layout/` naming is paired to the layout it belongs to, not a
@@ -55,7 +57,31 @@ second layout is ever added (e.g. `Auth.vue`), its header would be
 `AuthHeader.vue`, not a shared `AppHeader.vue` — each layout owns its own
 chrome.
 
-One folder per domain (matches the README's step boundaries), not per component type (no blanket `cards/`/`forms/`) — keeps everything for one step/commit together. `layout/` (singular, under `components/`) holds pieces *used by* a layout; `layouts/` (plural, top-level, Quasar-reserved) holds the routable layout shells themselves — don't conflate the two.
+One folder per domain under `step/` (matches the README's step boundaries),
+not per component type (no blanket `cards/`/`forms/`) — keeps everything for
+one step/commit together. `layout/` (singular, under `components/`) holds
+pieces *used by* a layout; `layouts/` (plural, top-level, Quasar-reserved)
+holds the routable layout shells themselves — don't conflate the two.
+
+Each `step/<domain>/` folder has exactly one top-level component that
+`IndexPage.vue` dispatches to for that step (e.g. `AttendeeInfo.vue`),
+**named after what the step actually is** (matches its `WIZARD_STEPS` label,
+e.g. "Attendee Info") — not a generic `*Step` suffix/prefix, which reads as
+a `stepper/`-chrome concept (`StepContainer`, `StepContent`, `StepNavItem`),
+not a domain one. Three layers, by responsibility:
+
+1. The top-level component (`AttendeeInfo.vue`) is pure composition — no
+   composable calls, just lays out its section-level children.
+2. Section-level components (`SelectTicketType.vue`, `AttendeeForm.vue`) —
+   one per distinct sub-concern of the step — call the shared composables
+   (`useRegistrationStore`, data-fetch composables) directly.
+3. Leaf/presentational components (`TicketCard.vue`, `FormInput.vue`) stay
+   props-in/emit-out, no composable calls — reusable and testable without
+   any store setup.
+
+`step/` components never import each other across domain folders, and
+`stepper/` never imports from `step/` — composition happens in
+`IndexPage.vue`, which is allowed to know about everything.
 
 ## Vue conventions
 
