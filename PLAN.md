@@ -44,8 +44,13 @@ type + lint gates:
   [journal 03](docs/journal/03-data-types-and-store.md).
   Full discussion (service layer, async-vs-sync, a type-widening gap found
   and fixed along the way): [journal 04](docs/journal/04-data-services.md).
-- **Phase 2 — Wizard shell** — stepper + free forward/back navigation with
-  preserved state.
+- **Phase 2 — Wizard shell** _(in progress)_ — stepper + free forward/back
+  navigation with preserved state. `MainHeader`/`Main` layout landed; the
+  stepper/step-container shell is being built by hand (not by me) with
+  review after each piece. Plain flexbox for the fixed-stepper /
+  scrollable-middle / fixed-footer shape (no nested `q-layout`), and the
+  post-submit success screen is a sibling of the step container, not a 5th
+  step. Full discussion: [journal 05](docs/journal/05-wizard-shell.md).
 - **Phase 3 — Steps 1–4** — attendee info, session selection, add-ons, review.
 - **Phase 4 — Cross-cutting logic** — pricing, time-conflict detection, unified
   validation.

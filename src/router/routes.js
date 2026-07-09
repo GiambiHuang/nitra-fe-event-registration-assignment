@@ -1,6 +1,15 @@
+import Main from 'src/layouts/Main.vue'
+import IndexPage from 'src/pages/IndexPage.vue'
+
 export default [
   {
     path: '/',
-    component: () => import('../pages/IndexPage.vue'),
+    component: Main,
+    children: [
+      {
+        path: '',
+        component: IndexPage,
+      },
+    ],
   },
 ]
