@@ -5,8 +5,7 @@ import MainHeader from 'src/components/layout/MainHeader.vue';
 <template>
   <div class="h-screen flex flex-col">
     <MainHeader />
-    <div class="border-0 border-b divider-default border-solid" />
-    <div class="flex-1">
+    <div class="flex-1 min-h-0">
       <router-view />
     </div>
   </div>

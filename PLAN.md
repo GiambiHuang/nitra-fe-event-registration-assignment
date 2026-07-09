@@ -55,6 +55,16 @@ type + lint gates:
 - **Phase 4 — Cross-cutting logic** — pricing, time-conflict detection, unified
   validation.
 - **Phase 5 — Polish** — design-fidelity pass, states, transitions.
+  - **To revisit here:** `text-h1`–`text-h4` already have a built-in RWD
+    effect from the starter scaffold — `src/css/typography.scss` swaps the
+    `--font-size-h*`/`--line-height-h*` CSS variables at `max-width: 1023px`
+    (h4: 20px/24px → 18px/24px, etc.), so those shortcuts shrink automatically
+    below the `desktop: 1024px` breakpoint already defined in
+    `src/unocss/index.js`. `subtitle1`/`subtitle2`/`body-*` have no such
+    media query and stay fixed. Noted 2026-07-09 when a heading looked
+    smaller than expected below 1024px — not a bug, but worth deciding
+    deliberately (keep / extend to more tokens / override) once the RWD pass
+    actually happens instead of leaving it as an unexamined scaffold default.
 
 ## 2. Key decisions
 

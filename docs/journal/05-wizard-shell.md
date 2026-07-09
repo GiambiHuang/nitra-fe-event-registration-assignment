@@ -66,21 +66,27 @@ stepper position and no back/next footer).
 decides which of two siblings renders at the top level:
 
 ```
-RegistrationWizard.vue
+IndexPage.vue
   isComplete === false → StepContainer.vue   (stepper + scrollable step + fixed footer)
   isComplete === true  → Success.vue          (standalone, no wizard chrome)
 ```
 
-- `IndexPage.vue` stays thin — just renders `RegistrationWizard`.
+- **The branch lives directly in `IndexPage.vue`**, not behind an extra
+  `RegistrationWizard.vue` wrapper (an earlier draft of this decision
+  proposed one). Revised: this app has exactly one route, so `IndexPage.vue`
+  *is* the wizard's entry point already — a wrapper component with a single
+  possible caller wasn't earning its keep. `pages/` staying "thin" is a
+  guideline for when a page has real routing concerns to stay clear of, not
+  a rule to satisfy by adding an empty pass-through layer.
 - `StepContainer` owns the in-progress wizard chrome only; it isn't
   responsible for deciding whether it should render at all.
 - `isComplete` lives alongside `currentStep` in `useWizardNavigation` (not in
   `useRegistrationStore` — same reasoning as journal 03 Decision D: this is
   flow/navigation state, not registration data). It needs a shared composable
   rather than local state because the flag is *read* at the top
-  (`RegistrationWizard`) but will eventually be *set* from deep inside Step
-  4's submit handler once Phase 4's validation lands — prop-drilling an emit
-  up through Stepper/Footer/StepContainer for that is exactly the kind of
+  (`IndexPage.vue`) but will eventually be *set* from deep inside Step 4's
+  submit handler once Phase 4's validation lands — prop-drilling an emit up
+  through Stepper/Footer/StepContainer for that is exactly the kind of
   friction cross-step composables already exist to avoid.
 - `Success.vue` lives in `components/review/` — it's the successful outcome
   of the review/submit flow, not a distinct domain of its own.
@@ -88,11 +94,70 @@ RegistrationWizard.vue
   *screen*, not a bookmarkable route, and a real route would need guarding
   against direct navigation to it.
 
-## Found during review, not yet fixed
+### `useWizardNavigation` shape agreed for the build
 
-`MainHeader.vue` uses a class `border-divider`, which isn't a real shortcut —
-confirmed it compiles to nothing by diffing the actual UnoCSS dev-server
-output (`divider-default` appears in the compiled CSS; `border-divider` does
-not). Should be `border-b divider-default border-solid`, matching the
-pattern `Main.vue` already uses one line below it. Left for a follow-up fix
-rather than editing mid-review.
+```
+currentStep: 1 | 2 | 3 | 4
+isComplete: boolean
+goNext() / goBack() / goToStep(n)   // goToStep for stepper click-to-jump
+                                     // and Step 4's future error navigation
+markComplete()
+```
+
+### Recommended build order (skeleton before real content)
+
+Build the shell against placeholder step content before Step 1's real form
+exists, rather than only integrating/testing navigation once all 4 steps are
+built:
+
+1. `useWizardNavigation` — small and independently verifiable.
+2. `StepContainer.vue` with a placeholder in the middle slot (e.g. plain text
+   showing the current step number), footer Back/Next wired to
+   `goBack`/`goNext`. Verify the three pitfalls above for real: resize the
+   window and confirm only the middle region scrolls (not the whole page);
+   confirm scroll position resets between steps; add a throwaway
+   `onUnmounted(() => console.log(...))` in the placeholder to confirm each
+   step really unmounts on navigation, rather than assuming it.
+3. `Success.vue`, minimal ("Registration Complete!" heading is enough for now).
+4. Wire the `isComplete` branch into `IndexPage.vue`.
+5. Click through the whole placeholder flow in the browser, including
+   temporarily forcing `isComplete = true` (e.g. via devtools or a throwaway
+   test button) to confirm `Success` actually renders.
+6. Only then replace the Step 1 placeholder with real content, continuing
+   step by step.
+
+## A real bug found by actually doing step 5 above
+
+Running the recommended click-through test — including the "temporarily
+force `isComplete = true`" step — surfaced a genuine bug rather than just
+confirming the happy path: `isComplete` was being persisted to
+`sessionStorage` along with `currentStep`. Once set via the throwaway test
+button, **every subsequent refresh loaded `isComplete: true` back from
+storage and landed on `Success.vue` again, with no code path anywhere that
+ever cleared it** — the success screen got permanently stuck for that
+browser tab.
+
+**Fixed:** `isComplete` is now excluded from what gets written to
+`sessionStorage` entirely (a `PersistedNavigationState = Pick<..,
+'currentStep'>` type at the persistence boundary, mirroring the pattern
+`useRegistrationStore` already uses for its `Set` fields). `currentStep`
+still persists (refreshing mid-form still lands on the same step), but
+`isComplete` always starts `false` on a fresh page load regardless of what
+was last written — it only becomes `true` again by actually calling
+`markComplete()` within the current session.
+
+Verified with a standalone script mirroring the persist/load logic: after a
+simulated "mark complete → persist → refresh," `isComplete` is `false`,
+`currentStep` is preserved, and the persisted JSON literally has no
+`isComplete` key at all.
+
+This is exactly the kind of bug the "build the skeleton and click through it
+for real" recommendation above was for — it wouldn't have been caught by
+`typecheck`/`lint`, only by actually exercising the flow.
+
+## Found during review — fixed
+
+`MainHeader.vue` used to have a class `border-divider`, which wasn't a real
+shortcut — confirmed at the time that it compiled to nothing by diffing the
+actual UnoCSS dev-server output. Since fixed by moving the divider into its
+own dedicated element in `Main.vue`, matching the pattern already used there.

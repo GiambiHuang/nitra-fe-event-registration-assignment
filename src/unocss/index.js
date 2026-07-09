@@ -40,6 +40,14 @@ export const typographyShortcuts = [{
   'text-body-xs': 'text-[length:var(--font-size-xs)] line-height-[var(--line-height-xs)] font-regular',
 }]
 
+// The page's max-content-width + horizontal-padding wrapper, used anywhere
+// content needs to line up with the page's 1440px content column (header,
+// stepper, step content, footer, ...). RWD variants can extend this string
+// later (e.g. `lt-tablet:px-6`) without touching any call site.
+export const layoutShortcuts = [{
+  'page-container': 'w-full max-w-[1440px] px-[120px]',
+}]
+
 export const breakpoints = {
   tablet: '768px',
   desktop: '1024px',
@@ -68,5 +76,6 @@ export const uiExtendTheme = (theme) => ({
 
 export const uiShortcuts = [
   ...typographyShortcuts,
+  ...layoutShortcuts,
   ...semanticShortcuts,
 ]
