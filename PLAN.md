@@ -59,7 +59,16 @@ type + lint gates:
     domain folders; composition happens in `IndexPage.vue`. Full discussion:
     [journal 06](docs/journal/06-stepper-components.md).
 - **Phase 3 — Steps 1–4** _(in progress)_ — attendee info, session selection,
-  add-ons, review. Started with Step 1 (ticket selection + attendee form).
+  add-ons, review.
+  - **Step 1 (done)** — ticket selection + attendee form, wired to
+    `useRegistrationStore`.
+  - **Step 2 (done)** — session selection: day-tab switcher, capacity/full
+    state, and a visual (non-blocking-at-Step-4, but selection-blocking in
+    the UI) time-conflict warning against already-selected sessions.
+    `useAsyncResource` factored out of `useEventInfo` for `useSessions` to
+    share; `groupSessionsByDate`/`formatSessionTime`/`timeConflicts` added to
+    `utils/` (the latter generic, for Step 3's workshop conflicts to reuse).
+    Full discussion: [journal 07](docs/journal/07-step2-sessions.md).
 - **Phase 4 — Cross-cutting logic** — pricing, time-conflict detection, unified
   validation.
 - **Phase 5 — Polish** — design-fidelity pass, states, transitions.
@@ -96,7 +105,11 @@ type + lint gates:
 | Step status (`upcoming`/`active`/`complete`/`error`) as a discriminated union + `STATUS_STYLES` lookup table, not 3 booleans + additive class-pushing | The additive version caused a real bug: two classes setting the same CSS property (base state + error) can both be present on one element, and cascade order (declaration order in `semantic.js`, not `:class` order) decides which wins — `text-danger` silently lost every time. A lookup table keyed by one mutually-exclusive status makes that impossible by construction. |
 | `WIZARD_STEPS` (index + label for all 4 steps) lives in `useWizardNavigation`, not in `WizardStepper` | Single source of truth for the step count — `MAX_STEP` is derived from its length instead of a separately hardcoded `4`, so the two can't drift out of sync if a step is ever added/removed. |
 | `stepper/` components don't import each other or reach into domain folders (`attendee/`, `sessions/`, ...); composition happens in `IndexPage.vue` | Keeps generic wizard chrome (`StepContainer`, `StepContent`, `WizardFooter`, `WizardStepper`/`StepNavItem`) reusable and decoupled from what any given step actually renders — the step→component lookup lives at the page level, not inside the chrome. `StepContainer` ended up deleted entirely once it held zero logic beyond a wrapper `<div>`. |
-| Discussed (not enforced): domain-folder components matching the plain-noun style of their siblings (`SessionCard`, `AddonCard`, `ReviewSection`) rather than a `Step`-qualified name (`StepAttendee`) | `Step` reads as a `stepper/`-chrome concept; the domain folder already encodes which step owns the file. Step 1's own component ultimately landed as `AttendeeStep.vue` — noted as the build-time call, not retrofitted to match. |
+| Domain-folder components (including each domain's orchestrating component, e.g. `AttendeeInfo.vue`) match the plain-noun style of their siblings (`SessionCard`, `AddonCard`, `ReviewSection`) rather than a `Step`-qualified name (`AttendeeStep`) | `Step` reads as a `stepper/`-chrome concept; the domain folder already encodes which step owns the file. Each domain's orchestrator is named after what the step actually is (`AttendeeInfo` for Step 1's "Attendee Info", matching `WIZARD_STEPS`' label), not a generic `*Step` suffix. |
+| Native `Intl.DateTimeFormat` over dayjs for session time/date formatting | The hard part (UTC → fixed Asia/Taipei conversion) isn't simpler with dayjs — its timezone plugin wraps the same `Intl` API, plus plugin-registration ceremony. No dayjs-specific pain point exists yet (fixed well-formed data, no DST in Taiwan, no i18n need). Revisit if later date work gets genuinely harder. |
+| `createAsyncResource` factored out of `useEventInfo` when `useSessions` needed the identical shape | Extracted on the second concrete instance, not after a third — both copies existed in the same sitting, so the shared shape wasn't speculative. |
+| `timeConflicts.ts`'s overlap check is typed against a minimal `{ id, date, endDate }` shape, not `Session` specifically | `WorkshopAddon` has the same shape and Step 3 will need the identical overlap math for workshop-vs-session/workshop-vs-workshop conflicts — built reusable once instead of duplicated per step. |
+| A conflicting session's card is fully `disabled` in Step 2, not just visually warned | Stricter than a literal README reading (conflicts are framed as selectable-but-flagged-at-Step-4); this is what was actually built. Consequence: two mutually-conflicting sessions can never both end up selected through normal clicking, since selecting one disables the other before it can be clicked. |
 
 Full walk-through against concrete test scenarios:
 [journal 03](docs/journal/03-data-types-and-store.md#test-case-validation-against-registrationstate).
@@ -105,7 +118,8 @@ Full reasoning per decision: [journal 01](docs/journal/01-tooling.md#key-decisio
 [journal 02](docs/journal/02-design-tokens.md#findings--color-tokens),
 [journal 03](docs/journal/03-data-types-and-store.md),
 [journal 04](docs/journal/04-data-services.md),
-[journal 06](docs/journal/06-stepper-components.md).
+[journal 06](docs/journal/06-stepper-components.md),
+[journal 07](docs/journal/07-step2-sessions.md).
 
 ## 3. Dependencies & why
 
