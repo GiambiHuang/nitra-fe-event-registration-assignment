@@ -12,8 +12,7 @@ type + lint gates:
   [journal 01](docs/journal/01-tooling.md).
 - **Phase 0.5 — Design tokens** _(done)_ — reconcile colors/typography against
   Figma, self-host the font. See [journal 02](docs/journal/02-design-tokens.md).
-- **Phase 1 — Data & types** _(implemented, pending review — not yet
-  committed)_ — types before store, store before UI:
+- **Phase 1 — Data & types** _(done)_ — types before store, store before UI:
   1. **Mock-data types** (`src/types/`) mirroring `event.js` / `sessions.js` /
      `addons.js` — `Addon` modeled as a discriminated union on `category`
      (`workshop` / `meal` / `merchandise`) so category-only fields (`sizes`,
@@ -36,9 +35,15 @@ type + lint gates:
      grouping keys come from the raw UTC ISO strings. Display assumes a fixed
      Asia/Taipei time zone (with an on-screen indicator), handled entirely at
      the UI layer.
+  6. **A `src/services/` data-access layer** in front of the mocks —
+     `getEventInfo` / `getSessions` / `getAddons`, all `async`-shaped so a
+     future real API only changes the service internals, not every caller.
+     Components/composables never import `mocks/` directly.
 
-  Full discussion (Pinia vs. composable, and the reasoning above):
+  Full discussion (Pinia vs. composable, state design):
   [journal 03](docs/journal/03-data-types-and-store.md).
+  Full discussion (service layer, async-vs-sync, a type-widening gap found
+  and fixed along the way): [journal 04](docs/journal/04-data-services.md).
 - **Phase 2 — Wizard shell** — stepper + free forward/back navigation with
   preserved state.
 - **Phase 3 — Steps 1–4** — attendee info, session selection, add-ons, review.
@@ -63,13 +68,16 @@ type + lint gates:
 | "Submit was attempted and failed" is local Step 4 UI state, not shared/persisted | Simpler UX: leaving Step 4 and returning is treated as a fresh attempt. Fewer state fields to reason about — no shared flag needed at all. |
 | Store's action functions get full JSDoc (`@param`/`@returns`) | They're the store's entire public API — every step component calls through them, so complete docs pay off in IDE tooltips, per the `CLAUDE.md` composable-documentation rule. |
 | Registration state persisted to `sessionStorage` (not `localStorage`), auto-saved via a deep watcher | Survives a page refresh within the tab (the actual trigger) without accumulating stale drafts across browser sessions the way `localStorage` would. `Set` fields are converted to arrays only at the storage boundary — the in-memory type is unchanged. |
+| `src/services/` data-access layer, `async`-shaped, built in Phase 1 rather than deferred | Real chance this becomes an actual API integration later; async-shaped services mean that change touches only the service internals, not every caller. Doing it now (alongside `src/types/`) avoids a second refactor once components already depend on `mocks/` directly. |
+| `Session`'s mock-to-type mapping narrows only the `track` field; `Addon`'s casts the whole array | Plain `.js` mock literals widen string-literal fields to `string` under TS inference (verified empirically, not assumed) — `Session` isn't a union so a per-field narrow cast keeps every other field structurally checked; `Addon` is a discriminated union where the equivalent precise fix needs a distributive `Omit` utility type, judged not worth it for a fixed, hand-verified fixture. |
 
 Full walk-through against concrete test scenarios:
 [journal 03](docs/journal/03-data-types-and-store.md#test-case-validation-against-registrationstate).
 
 Full reasoning per decision: [journal 01](docs/journal/01-tooling.md#key-decisions),
 [journal 02](docs/journal/02-design-tokens.md#findings--color-tokens),
-[journal 03](docs/journal/03-data-types-and-store.md).
+[journal 03](docs/journal/03-data-types-and-store.md),
+[journal 04](docs/journal/04-data-services.md).
 
 ## 3. Dependencies & why
 
