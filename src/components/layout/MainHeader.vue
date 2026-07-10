@@ -5,7 +5,7 @@
         src="~assets/Logo.svg"
         width="40"
         height="40"
-        class="size-5 md:size-8"
+        class="size-5 md:size-10"
       >
       <div class="text-subtitle2 md:text-h4">
         WebDev Summit 2025

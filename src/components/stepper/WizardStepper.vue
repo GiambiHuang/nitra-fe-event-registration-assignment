@@ -32,7 +32,7 @@ const STATUS_STYLES: Record<StepStatus, { iconClass: string[]; labelClass: strin
   },
   active: {
     iconClass: ['bg-brand-emphasis-rest', 'text-inverse'],
-    labelClass: ['text-neutral', 'font-medium500'],
+    labelClass: ['text-neutral', 'font-semibold'],
   },
   complete: {
     iconClass: ['bg-brand-emphasis-rest', 'text-inverse'],
