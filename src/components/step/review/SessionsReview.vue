@@ -37,7 +37,7 @@ const selectedSessions = computed(() => {
         <div
           v-for="session in selectedSessions"
           :key="session.id"
-          class="flex items-center justify-between text-body-sm"
+          class="flex flex-col md:flex-row items-start flex-nowrap gap-x-2 justify-between text-body-sm"
         >
           <span class="text-neutral-muted">{{ session.dateTime }}</span>
           <span class="text-neutral">{{ session.title }}</span>

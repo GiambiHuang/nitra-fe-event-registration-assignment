@@ -14,14 +14,14 @@ const emit = defineEmits<{
 <template>
   <button
     type="button"
-    class="flex flex-col gap-y-3 flex-1 p-5 rounded-md border border-neutral-muted border-solid cursor-pointer min-h-[288px] shadow-card"
+    class="flex max-lg:w-full flex-col gap-y-3 flex-1 p-5 rounded-md border border-neutral-muted border-solid cursor-pointer min-h-[288px] shadow-card"
     :class="{
       'border-selected bg-brand-muted-rest': selected,
       'bg-surface-l1': !selected
     }"
     @click="emit('select')"
   >
-    <div class="flex items-center justify-between text-subtitle1">
+    <div class="flex items-center justify-between text-subtitle1 text-neutral">
       <span>{{ ticket.name }}</span>
       <span>${{ ticket.price }}</span>
     </div>

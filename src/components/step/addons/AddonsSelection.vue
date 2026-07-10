@@ -74,7 +74,7 @@ const activeCategory = ref<Category>('workshops')
             v-for="category in CATEGORIES"
             :key="category"
             type="button"
-            class="flex items-center justify-center text-subtitle2 border-0 outline-0 h-8 px-4 rounded-lg cursor-pointer"
+            class="flex items-center justify-center text-body-xs lg:text-subtitle2 border-0 outline-0 h-8 px-4 rounded-lg cursor-pointer"
             :class="category === activeCategory ? 'bg-brand-emphasis-rest text-inverse' : 'text-neutral-muted'"
             @click="activeCategory = category"
           >
