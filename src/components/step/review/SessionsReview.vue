@@ -1,34 +1,46 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import ReviewSection from './ReviewSection.vue'
 import { useRegistrationStore } from 'src/composables/useRegistrationStore'
 import { useSessions } from 'src/composables/useSessions'
 import { formatSessionDate, formatSessionTimeRange } from 'src/utils/formatSessionTime'
+import type { Session } from 'src/types/session'
 
 const { state } = useRegistrationStore()
-const { resource } = useSessions();
+const { resource } = useSessions()
 
+// Sorted chronologically by start time, not selection order — a `Set`
+// preserves insertion order, which isn't a meaningful order to review in.
 const selectedSessions = computed(() => {
-  if (resource.value.status !== 'success') return [];
+  if (resource.value.status !== 'success') return []
 
-  return Array.from(state.selectedSessionIds).map(id => {
-    const session = resource.value.status === 'success' ? resource.value.data.find(session => session.id === id) : null;
-    return {
-      label: session?.date ? `${formatSessionDate(session.date)}, ${formatSessionTimeRange(session.date, session.endDate)}` : 'unknown',
-      value: session?.title ?? 'unknown',
-    }
-  })
+  const catalog = resource.value.data
+  return Array.from(state.selectedSessionIds)
+    .map(id => catalog.find(session => session.id === id))
+    .filter((session): session is Session => session !== undefined)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map(session => ({
+      id: session.id,
+      dateTime: `${formatSessionDate(session.date)}, ${formatSessionTimeRange(session.date, session.endDate)}`,
+      title: session.title,
+    }))
 })
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-3">
-    <div
-      v-for="field in selectedSessions"
-      :key="field.label"
-      class="flex items-center justify-between text-body-sm"
-    >
-      <span class="text-neutral-muted">{{ field.label }}</span>
-      <span class="text-neutral">{{ field.value }}</span>
+  <ReviewSection
+    title="Selected Sessions"
+    :step-index="2"
+  >
+    <div class="flex flex-col gap-y-3">
+      <div
+        v-for="session in selectedSessions"
+        :key="session.id"
+        class="flex items-center justify-between text-body-sm"
+      >
+        <span class="text-neutral-muted">{{ session.dateTime }}</span>
+        <span class="text-neutral">{{ session.title }}</span>
+      </div>
     </div>
-  </div>
+  </ReviewSection>
 </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import ReviewSection from './ReviewSection.vue';
 import { useRegistrationStore } from 'src/composables/useRegistrationStore'
 import { useEventInfo } from 'src/composables/useEventInfo'
 import { isShippingAddressRequired } from 'src/utils/registrationRules'
@@ -38,14 +39,19 @@ const fields = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-3">
-    <div
-      v-for="field in fields"
-      :key="field.label"
-      class="flex items-center justify-between text-body-sm"
-    >
-      <span class="text-neutral-muted">{{ field.label }}</span>
-      <span class="text-neutral">{{ field.value }}</span>
+  <ReviewSection
+    title="Attendee Information"
+    :step-index="1"
+  >
+    <div class="flex flex-col gap-y-3">
+      <div
+        v-for="field in fields"
+        :key="field.label"
+        class="flex items-center justify-between text-body-sm"
+      >
+        <span class="text-neutral-muted">{{ field.label }}</span>
+        <span class="text-neutral">{{ field.value }}</span>
+      </div>
     </div>
-  </div>
+  </ReviewSection>
 </template>

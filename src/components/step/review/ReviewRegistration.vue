@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import ReviewSection from './ReviewSection.vue';
 import AttendeeReview from './AttendeeReview.vue';
+import SessionsReview from './SessionsReview.vue';
 </script>
 
 <template>
@@ -9,12 +9,8 @@ import AttendeeReview from './AttendeeReview.vue';
       Review Your Registration
     </div>
     <div class="flex flex-col gap-y-6">
-      <ReviewSection
-        title="Attendee Information"
-        :step-index="1"
-      >
-        <AttendeeReview />
-      </ReviewSection>
+      <AttendeeReview />
+      <SessionsReview />
     </div>
   </div>
 </template>
