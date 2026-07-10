@@ -78,6 +78,13 @@ type + lint gates:
     `utils/`, ahead of Phase 4's own validation work, since Step 3's running
     total needs the pricing math now. Full discussion:
     [journal 08](docs/journal/08-step3-addons.md).
+  - **Step 4 (not started)** — a first pass at wiring Step 4's submit → validate
+    → `errorSteps` → stepper/footer flow was built, then deliberately
+    discarded to build the happy-path review UI (summary blocks, Order
+    Summary, Edit buttons) first and revisit validation once there's a real
+    screen to display errors against. The dependency choice made ahead of
+    that (plain functions vs. zod) is kept — see
+    [journal 09](docs/journal/09-validation-approach.md).
 - **Phase 4 — Cross-cutting logic** — pricing, time-conflict detection, unified
   validation.
 - **Phase 5 — Polish** — design-fidelity pass, states, transitions.
@@ -124,6 +131,7 @@ type + lint gates:
 | `AddonCard.vue` handles both workshops and meals (branches on `addon.category` internally for the time/conflict/capacity bits); merchandise gets its own `MerchandiseCard.vue` | Workshops/meals share the same interaction model (click the card to toggle) that `AddonCard` already generalizes; merchandise's quantity stepper + size `<select>` are real nested interactive controls, which can't live inside one big clickable `<button>` the way the other two do. |
 | VIP's 10% workshop discount is its own summary line, not folded into each workshop's displayed price | Keeps the discount visible/auditable rather than silently changing per-item numbers — matches the README's "ticket price, add-ons, VIP discount, total" as separate concerns. |
 | `calculateOrderSummary`/`formatCurrency` built now (nominally "Phase 4 — pricing") rather than deferred | Step 3's own Order Summary requirement needs a live running total immediately; the phase label was about when validation/pricing get hardened, not a hard gate on when the math can exist. |
+| Plain validation functions over zod for Step 4's unified validation | Most of the actual rules (session/workshop time conflicts, merchandise-size-required) need to cross-reference external catalogs (sessions, addons) that live outside the object being validated — not what a schema library validates well. Only Step 1's field checks (required strings, email/phone format) are a natural schema fit, and splitting just that piece into zod would mean reconciling two different validation styles into one result. Revisit if Phase 4's real implementation finds this awkward in practice. |
 
 Full walk-through against concrete test scenarios:
 [journal 03](docs/journal/03-data-types-and-store.md#test-case-validation-against-registrationstate).
@@ -134,7 +142,8 @@ Full reasoning per decision: [journal 01](docs/journal/01-tooling.md#key-decisio
 [journal 04](docs/journal/04-data-services.md),
 [journal 06](docs/journal/06-stepper-components.md),
 [journal 07](docs/journal/07-step2-sessions.md),
-[journal 08](docs/journal/08-step3-addons.md).
+[journal 08](docs/journal/08-step3-addons.md),
+[journal 09](docs/journal/09-validation-approach.md).
 
 ## 3. Dependencies & why
 
