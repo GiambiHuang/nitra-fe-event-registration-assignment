@@ -10,20 +10,3 @@ import type { RegistrationState } from 'src/types/registration'
 export function isShippingAddressRequired(state: Pick<RegistrationState, 'merchandiseSelections'>): boolean {
   return Object.keys(state.merchandiseSelections).length > 0
 }
-
-/**
- * Whether every required Step 1 field is filled in. Shipping address only
- * counts when `isShippingAddressRequired` is true. Presence-only check (no
- * email/phone format validation yet) — Step 4's fuller validation is being
- * built incrementally on top of the review screen (see journal 09).
- * @param state - The current registration state.
- * @returns Whether the attendee form has everything required to submit.
- */
-export function isAttendeeInfoComplete(state: Pick<RegistrationState, 'attendee' | 'merchandiseSelections'>): boolean {
-  const { fullName, email, phone, company, jobTitle, shippingAddress } = state.attendee
-  const requiredFields = [fullName, email, phone, company, jobTitle]
-  if (isShippingAddressRequired(state)) {
-    requiredFields.push(shippingAddress)
-  }
-  return requiredFields.every(field => field.trim().length > 0)
-}

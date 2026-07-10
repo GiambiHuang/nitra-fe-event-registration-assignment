@@ -33,14 +33,21 @@ const selectedSessions = computed(() => {
     :step-index="2"
   >
     <div class="flex flex-col gap-y-3">
-      <div
-        v-for="session in selectedSessions"
-        :key="session.id"
-        class="flex items-center justify-between text-body-sm"
-      >
-        <span class="text-neutral-muted">{{ session.dateTime }}</span>
-        <span class="text-neutral">{{ session.title }}</span>
-      </div>
+      <template v-if="selectedSessions.length > 0">
+        <div
+          v-for="session in selectedSessions"
+          :key="session.id"
+          class="flex items-center justify-between text-body-sm"
+        >
+          <span class="text-neutral-muted">{{ session.dateTime }}</span>
+          <span class="text-neutral">{{ session.title }}</span>
+        </div>
+      </template>
+      <template v-else>
+        <div class="text-body-sm text-neutral-muted">
+          -
+        </div>
+      </template>
     </div>
   </ReviewSection>
 </template>

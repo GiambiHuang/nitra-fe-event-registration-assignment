@@ -3,6 +3,8 @@ import { computed, ref } from 'vue'
 import { useAddons } from 'src/composables/useAddons'
 import { useSessions } from 'src/composables/useSessions'
 import { useRegistrationStore } from 'src/composables/useRegistrationStore'
+import { useWizardNavigation } from 'src/composables/useWizardNavigation'
+import { useRegistrationValidation } from 'src/composables/useRegistrationValidation'
 import { groupAddonsByCategory } from 'src/utils/groupAddonsByCategory'
 import { findConflictingIds } from 'src/utils/timeConflicts'
 import OrderSummary from 'src/components/order-summary/OrderSummary.vue'
@@ -13,6 +15,14 @@ import ShippingBanner from './ShippingBanner.vue'
 const { resource: addonsResource } = useAddons()
 const { resource: sessionsResource } = useSessions()
 const { state, toggleWorkshop, toggleMeal, setMerchandiseQuantity, setMerchandiseSize } = useRegistrationStore()
+const { state: navigationState } = useWizardNavigation()
+const { result } = useRegistrationValidation()
+
+// Only shown once a submit attempt has actually failed — same gating as
+// Step 1's field errors.
+const merchandiseSizeErrors = computed(() =>
+  navigationState.hasAttemptedSubmit ? result.value.merchandiseSizeErrors : new Set<string>(),
+)
 
 const grouped = computed(() =>
   addonsResource.value.status === 'success'
@@ -104,6 +114,7 @@ const activeCategory = ref<Category>('workshops')
               :addon="item"
               :quantity="state.merchandiseSelections[item.id]?.quantity ?? 0"
               :size="state.merchandiseSelections[item.id]?.size"
+              :has-size-error="merchandiseSizeErrors.has(item.id)"
               @quantity-change="quantity => setMerchandiseQuantity(item.id, quantity)"
               @size-change="size => setMerchandiseSize(item.id, size)"
             />

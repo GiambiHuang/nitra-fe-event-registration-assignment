@@ -19,20 +19,23 @@ export type WizardStep = 1 | 2 | 3 | 4
 interface WizardNavigationState {
   currentStep: WizardStep
   isComplete: boolean
+  /** Whether Submit Registration has been clicked at least once this registration attempt. Gates whether Step 4's validation errors are actually shown (see `markSubmitAttempted`). */
+  hasAttemptedSubmit: boolean
 }
 
 function createInitialState(): WizardNavigationState {
   return {
     currentStep: 1,
     isComplete: false,
+    hasAttemptedSubmit: false,
   }
 }
 
 /**
  * Only `currentStep` is persisted — `isComplete` deliberately never is (see
- * journal 05). Otherwise, marking the registration complete would get
- * written to sessionStorage and every subsequent refresh would land back on
- * the success screen forever, with nothing to ever clear it.
+ * journal 05), and neither is `hasAttemptedSubmit` for the same shape of
+ * reason: a refresh should never resurrect "you just tried to submit and it
+ * failed" as UI state.
  */
 type PersistedNavigationState = Pick<WizardNavigationState, 'currentStep'>
 
@@ -82,8 +85,10 @@ function goBack(): void {
 /**
  * Jumps directly to the given step, with no restriction on which one — the
  * spec requires free forward/back navigation. Also backs the stepper's
- * click-to-jump and Step 4's future error navigation (jumping to whichever
- * step failed validation).
+ * click-to-jump and Step 4's error navigation (jumping to whichever step
+ * failed validation) — `hasAttemptedSubmit` deliberately stays set across
+ * this jump, so the destination step actually shows its field-level errors
+ * instead of the navigation silently clearing them.
  * @param step - The step to jump to.
  */
 function goToStep(step: WizardStep): void {
@@ -93,6 +98,20 @@ function goToStep(step: WizardStep): void {
 /** Marks the registration as successfully submitted, switching the top-level view to the success screen. */
 function markComplete(): void {
   state.isComplete = true
+}
+
+/**
+ * Records that Submit Registration has been clicked, so Step 4's
+ * validation errors start actually being shown everywhere (stepper, review
+ * page, individual step inputs) instead of just gating the button. Stays
+ * `true` across navigation — including jumping to a failing step to fix
+ * it — so the errors it reveals don't just vanish before they can be
+ * seen; the underlying validation result stays live throughout, so each
+ * error clears itself the moment its field is actually fixed. Only a full
+ * `resetNavigation` (Back to Home) clears it back to `false`.
+ */
+function markSubmitAttempted(): void {
+  state.hasAttemptedSubmit = true
 }
 
 /** Removes the persisted `currentStep` from `sessionStorage`, if present. Shared by `resetNavigation` and `clearPersistedNavigation` — see the latter's doc for why they're split. */
@@ -134,6 +153,7 @@ const actions = {
   goBack,
   goToStep,
   markComplete,
+  markSubmitAttempted,
   clearPersistedNavigation,
   resetNavigation,
 }

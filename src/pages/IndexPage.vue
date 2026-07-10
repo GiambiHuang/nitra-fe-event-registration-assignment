@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Success from 'src/components/result/Success.vue'
 import StepContent from 'src/components/stepper/StepContent.vue'
 import WizardStepper from 'src/components/stepper/WizardStepper.vue'
@@ -8,8 +9,14 @@ import SessionSelection from 'src/components/step/sessions/SessionSelection.vue'
 import AddonsSelection from 'src/components/step/addons/AddonsSelection.vue'
 import ReviewRegistration from 'src/components/step/review/ReviewRegistration.vue'
 import { useWizardNavigation } from 'src/composables/useWizardNavigation'
+import { useRegistrationValidation } from 'src/composables/useRegistrationValidation'
 
 const { state, goToStep } = useWizardNavigation()
+const { result } = useRegistrationValidation()
+
+// Only shown once a submit attempt has actually failed — see
+// useWizardNavigation's hasAttemptedSubmit doc.
+const errorSteps = computed(() => (state.hasAttemptedSubmit ? result.value.errorSteps : []))
 </script>
 
 <template>
@@ -20,7 +27,7 @@ const { state, goToStep } = useWizardNavigation()
   >
     <WizardStepper
       :current-step="state.currentStep"
-      :error-steps="[]"
+      :error-steps="errorSteps"
       @change="goToStep"
     />
     <StepContent>

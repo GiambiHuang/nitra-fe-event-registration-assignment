@@ -6,7 +6,7 @@ import type { StepStatus, StepWithStatus } from './types'
 
 const { currentStep, errorSteps = [] } = defineProps<{
   currentStep: WizardStep
-  /** Steps currently failing validation, shown with error styling regardless of active/complete state. Empty until Step 4's real validation is wired in. */
+  /** Steps currently failing validation, shown with error styling regardless of active/complete state. Only non-empty once a Step 4 submit attempt has actually failed (see useWizardNavigation's hasAttemptedSubmit). */
   errorSteps?: WizardStep[]
 }>()
 
