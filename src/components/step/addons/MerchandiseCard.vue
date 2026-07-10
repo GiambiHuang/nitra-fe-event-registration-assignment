@@ -2,11 +2,13 @@
 import type { MerchandiseAddon } from 'src/types/addon'
 import { formatCurrency } from 'src/utils/formatCurrency'
 
-const { addon, quantity } = defineProps<{
+const { addon, quantity, hasSizeError = false } = defineProps<{
   addon: MerchandiseAddon
   /** 0 means not selected — mirrors the store's own "quantity <= 0 removes the selection" rule. */
   quantity: number
   size: string | undefined
+  /** True when this item is selected, offers sizes, but none is chosen — driven by the caller's validation state. */
+  hasSizeError?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -45,7 +47,8 @@ function decrement(): void {
         <select
           :value="size"
           :disabled="quantity === 0"
-          class="h-[27px] rounded-md border border-neutral-muted border-solid bg-surface-l0 px-2 outline-none font-medium500 disabled:text-neutral-disabled"
+          class="h-[27px] rounded-md border border-solid bg-surface-l0 px-2 outline-none font-medium500 disabled:text-neutral-disabled"
+          :class="hasSizeError ? 'border-danger-emphasis' : 'border-neutral-muted'"
           @change="emit('sizeChange', ($event.target as HTMLSelectElement).value)"
         >
           <option
