@@ -28,7 +28,6 @@ const { state, goToStep } = useWizardNavigation()
       <SessionSelection v-else-if="state.currentStep === 2" />
       <AddonsSelection v-else-if="state.currentStep === 3" />
       <ReviewRegistration v-else />
-      <!-- Review added once built -->
     </StepContent>
     <WizardFooter />
   </div>
