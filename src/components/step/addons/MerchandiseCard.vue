@@ -70,7 +70,7 @@ function decrement(): void {
         <span class="text-neutral-muted font-medium500">Qty:</span>
         <button
           type="button"
-          class="size-7 p-0 bg-transparent border-0 cursor-pointer disabled:cursor-not-allowed"
+          class="size-7 p-0 bg-transparent hover:bg-surface-l2 rounded-full border-0 cursor-pointer transition-colors disabled:cursor-not-allowed disabled:hover:bg-transparent"
           :disabled="quantity <= 0"
           @click="decrement"
         >
@@ -82,7 +82,7 @@ function decrement(): void {
         <span class="text-subtitle2 w-6 text-center">{{ quantity }}</span>
         <button
           type="button"
-          class="size-7 p-0 bg-transparent border-0 cursor-pointer disabled:cursor-not-allowed"
+          class="size-7 p-0 bg-transparent hover:bg-surface-l2 rounded-full border-0 cursor-pointer transition-colors disabled:cursor-not-allowed disabled:hover:bg-transparent"
           :disabled="quantity >= addon.maxQuantity"
           @click="increment"
         >

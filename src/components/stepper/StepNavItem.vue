@@ -13,7 +13,7 @@ const emit = defineEmits<{
 <template>
   <button
     type="button"
-    class="flex flex-col gap-y-1 lg:flex-row items-center gap-2.5 border-0 bg-transparent cursor-pointer p-0"
+    class="flex flex-col gap-y-1 lg:flex-row items-center gap-2.5 border-0 bg-transparent cursor-pointer p-0 transition-opacity hover:opacity-80"
     :aria-current="step.status === 'active' ? 'step' : undefined"
     @click="emit('click')"
   >
