@@ -1,41 +1,74 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import ReviewSection from './ReviewSection.vue'
 import { useRegistrationStore } from 'src/composables/useRegistrationStore'
-import { useAddons } from 'src/composables/useAddons';
+import { useAddons } from 'src/composables/useAddons'
+import { formatCurrency } from 'src/utils/formatCurrency'
+import type { MealAddon, MerchandiseAddon, WorkshopAddon } from 'src/types/addon'
 
 const { state } = useRegistrationStore()
-const { resource } = useAddons();
+const { resource } = useAddons()
 
-const selectedWorkshops = computed(() => {
-  if (resource.value.status !== 'success') return [];
-  return [
-    ...state.selectedWorkshopIds,
-  ].map(id => {
-    const addon = resource.value.status === 'success' ? resource.value.data.find(addons => addons.id === id) : null;
-    return {
-      label: 'Workshop',
-      value: `${addon?.name || 'Unknown'} ($${addon?.price})`,
-    }
-  })
+interface AddonRow {
+  id: string
+  label: string
+  value: string
+}
+
+// One flat list across all three add-on categories — same {label, value}
+// row shape as the workshop-only version, just filtered/mapped per
+// category like calculateOrderSummary.ts does for pricing.
+const addonRows = computed<AddonRow[]>(() => {
+  if (resource.value.status !== 'success') return []
+  const addons = resource.value.data
+
+  const workshops: AddonRow[] = addons
+    .filter((addon): addon is WorkshopAddon => addon.category === 'workshop' && state.selectedWorkshopIds.has(addon.id))
+    .map(addon => ({ id: addon.id, label: 'Workshop', value: `${addon.name} (${formatCurrency(addon.price)})` }))
+
+  const meals: AddonRow[] = addons
+    .filter((addon): addon is MealAddon => addon.category === 'meal' && state.selectedMealIds.has(addon.id))
+    .map(addon => ({ id: addon.id, label: 'Meal', value: `${addon.name} (${formatCurrency(addon.price)})` }))
+
+  const merchandiseById = new Map(
+    addons
+      .filter((addon): addon is MerchandiseAddon => addon.category === 'merchandise')
+      .map(addon => [addon.id, addon] as const),
+  )
+  const merchandise: AddonRow[] = Object.entries(state.merchandiseSelections)
+    .map(([addonId, selection]) => {
+      const item = merchandiseById.get(addonId)
+      if (!item) return null
+      const sizeLabel = selection.size ? ` (${selection.size})` : ''
+      return { id: item.id, label: 'Merchandise', value: `${item.name}${sizeLabel} × ${selection.quantity} (${formatCurrency(item.price * selection.quantity)})` }
+    })
+    .filter((row): row is AddonRow => row !== null)
+
+  return [...workshops, ...meals, ...merchandise]
 })
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-3">
-    <template v-if="selectedWorkshops.length > 0">
-      <div
-        v-for="field in selectedWorkshops"
-        :key="field.label"
-        class="flex items-center justify-between text-body-sm"
-      >
-        <span class="text-neutral-muted">{{ field.label }}</span>
-        <span class="text-neutral">{{ field.value }}</span>
-      </div>
-    </template>
-    <template v-else>
-      <div class="text-body-sm text-neutral-muted">
-        -
-      </div>
-    </template>
-  </div>
+  <ReviewSection
+    title="Add-ons"
+    :step-index="3"
+  >
+    <div class="flex flex-col gap-y-3">
+      <template v-if="addonRows.length > 0">
+        <div
+          v-for="row in addonRows"
+          :key="row.id"
+          class="flex items-center justify-between text-body-sm"
+        >
+          <span class="text-neutral-muted">{{ row.label }}</span>
+          <span class="text-neutral">{{ row.value }}</span>
+        </div>
+      </template>
+      <template v-else>
+        <div class="text-body-sm text-neutral-muted">
+          -
+        </div>
+      </template>
+    </div>
+  </ReviewSection>
 </template>
