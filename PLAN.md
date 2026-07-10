@@ -229,6 +229,17 @@ Full font reasoning: [journal 02](docs/journal/02-design-tokens.md#font-self-hos
   every given Figma `hsla()` to RGB/hex and diffed against the existing
   scaffold instead of assuming it was already correct; found 3 real color
   mismatches and a font-weight scale that was a placeholder, not real values.
+- **A Step 1 field's required-ness depends on Step 3's state.**
+  `shippingAddress` is only required once any merchandise item is selected
+  — a genuinely cross-step dependency in what's otherwise a linear
+  step-by-step wizard, and by count of call sites (Step 1's field label,
+  Step 3's shipping banner, Step 4's review row visibility, Step 4's
+  validation) the easiest of these four to accidentally duplicate and let
+  drift out of sync. Solved with one shared pure predicate,
+  `isShippingAddressRequired(state)` (`utils/registrationRules.ts`),
+  reading only `merchandiseSelections` — every consumer calls it instead
+  of re-deriving the same "any merchandise selected?" check, so the rule
+  has exactly one place it could ever be wrong.
 
 Details: [journal 01](docs/journal/01-tooling.md#challenges--fixes),
 [journal 02](docs/journal/02-design-tokens.md#findings--color-tokens).
@@ -244,3 +255,18 @@ Details: [journal 01](docs/journal/01-tooling.md#challenges--fixes),
   no phone format check, no Step 2/3 conflict re-verification at submit
   time (the UI already prevents creating one, but a submit-time re-check
   would be more defensive). Add both if there's time.
+- **i18n.** All copy is hardcoded English strings scattered across
+  components — no `vue-i18n`/message-catalog layer at all. Fine for a
+  single-locale assignment, but real internationalization would mean
+  extracting every string first, which is a much bigger refactor to do
+  after the fact than to have designed in from the start.
+- **Animation/transition polish.** Step changes, card selection, and
+  error states currently all snap instantly — no `<Transition>` on step
+  content swaps, no micro-interaction on hover/press for
+  cards/buttons/tabs, no loading-skeleton in place of the plain
+  "Loading…" text. Would meaningfully improve perceived quality without
+  touching any logic.
+- **More interaction feedback generally** — e.g. a brief success flash
+  when a field self-corrects (an error clearing live as you type,
+  Step 4's whole point), subtler focus/active states than the current
+  binary default/danger border swap.
