@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useWizardNavigation, type WizardStep } from 'src/composables/useWizardNavigation'
-import { useRegistrationStore } from 'src/composables/useRegistrationStore'
-import { isAttendeeInfoComplete } from 'src/utils/registrationRules'
+import { useRegistrationValidation } from 'src/composables/useRegistrationValidation'
 
-const { goBack, goNext, markComplete, state } = useWizardNavigation()
-const { state: registrationState } = useRegistrationStore()
+const { goBack, goNext, markComplete, markSubmitAttempted, state } = useWizardNavigation()
+const { result } = useRegistrationValidation()
 
 const NEXT_LABELS: Record<WizardStep, string> = {
   1: 'Next: Session Selection',
@@ -16,15 +15,21 @@ const NEXT_LABELS: Record<WizardStep, string> = {
 
 const nextLabel = computed(() => NEXT_LABELS[state.currentStep])
 
+// Only disabled once a submit attempt has actually failed — the button
+// starts out clickable even on a blank form, matching the "no inline
+// validation, everything runs at submit time" spec.
+const isSubmitDisabled = computed(() => state.currentStep === 4 && state.hasAttemptedSubmit && !result.value.isValid)
+
 /**
  * Advances to the next step, except on Step 4 where the button submits
- * instead — gated on attendee info being complete. Silently blocked if
- * not (no error UI yet, see journal 09 for the fuller validation planned
- * on top of this).
+ * instead. The first click always runs validation (`markSubmitAttempted`
+ * turns on error display everywhere); only completes the registration if
+ * it actually passes.
  */
 function handleNext(): void {
   if (state.currentStep === 4) {
-    if (isAttendeeInfoComplete(registrationState)) {
+    markSubmitAttempted()
+    if (result.value.isValid) {
       markComplete()
     }
     return
@@ -47,7 +52,8 @@ function handleNext(): void {
       </div>
       <div class="flex-1 flex justify-end">
         <button
-          class="bg-accent-emphasis-rest border-0 text-subtitle2 text-inverse h-10 px-4 rounded-[10px] cursor-pointer"
+          class="bg-accent-emphasis-rest border-0 text-subtitle2 text-inverse h-10 px-4 rounded-[10px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          :disabled="isSubmitDisabled"
           @click="handleNext"
         >
           {{ nextLabel }}
