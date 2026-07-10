@@ -43,11 +43,11 @@ function handleBackToHome(): void {
       Registration Complete!
     </div>
     <div class="text-body-lg text-neutral">
-      Confirmation #TC2025-47291
+      Confirmation #WDS2025-47291
     </div>
     <div class="text-body-sm text-neutral-muted text-center">
       Thank you, {{ registrationState.attendee.fullName }}!
-      Your {{ selectedTicketName ?? '' }} registration for TechConf 2025 is confirmed.
+      Your {{ selectedTicketName ?? '' }} registration for WebDev Summit 2025 is confirmed.
       <br>
       You will receive a confirmation email at {{ registrationState.attendee.email }}.
     </div>
