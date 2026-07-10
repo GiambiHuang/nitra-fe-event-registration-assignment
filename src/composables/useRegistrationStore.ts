@@ -172,18 +172,36 @@ function setMerchandiseSize(addonId: string, size: string): void {
   state.merchandiseSelections[addonId] = { ...existing, size }
 }
 
-/**
- * Resets the registration to a blank slate and clears the persisted copy.
- * Not yet called anywhere — intended for Phase 4's post-submit success flow,
- * so a completed registration doesn't resurrect itself on the next visit.
- */
-function resetRegistration(): void {
-  Object.assign(state, createInitialState())
+/** Removes the persisted registration from `sessionStorage`, if present. Shared by `resetRegistration` and `clearPersistedRegistration` — see the latter's doc for why they're split. */
+function removePersistedRegistration(): void {
   try {
     sessionStorage.removeItem(STORAGE_KEY)
   } catch {
     // Storage unavailable — nothing to clear.
   }
+}
+
+/**
+ * Clears only the persisted copy, leaving the in-memory state untouched.
+ * Used when the Success screen mounts: it still needs to read the
+ * just-submitted attendee/ticket data to display it, but a refresh from
+ * there should start the wizard over rather than resurrect the completed
+ * registration (paired with `useWizardNavigation`'s
+ * `clearPersistedNavigation`, called together for the same reason).
+ */
+function clearPersistedRegistration(): void {
+  removePersistedRegistration()
+}
+
+/**
+ * Resets the registration to a blank slate and clears the persisted copy —
+ * both the in-memory state and storage. Used by the Success screen's
+ * "Back to Home" action, once the user is actually navigating away (unlike
+ * `clearPersistedRegistration`, which leaves the in-memory state alone).
+ */
+function resetRegistration(): void {
+  Object.assign(state, createInitialState())
+  removePersistedRegistration()
 }
 
 const actions = {
@@ -195,6 +213,7 @@ const actions = {
   toggleMeal,
   setMerchandiseQuantity,
   setMerchandiseSize,
+  clearPersistedRegistration,
   resetRegistration,
 }
 

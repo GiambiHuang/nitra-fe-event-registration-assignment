@@ -95,16 +95,8 @@ function markComplete(): void {
   state.isComplete = true
 }
 
-/**
- * Resets navigation back to the first step (in memory) and clears the
- * persisted `currentStep`. Not yet called anywhere — intended for a future
- * "start a new registration" action, so a stale step doesn't resurface on
- * the next visit. `isComplete` never persists in the first place (see
- * `PersistedNavigationState`), so this isn't what prevents the success
- * screen from getting stuck — that's handled at the persistence layer.
- */
-function resetNavigation(): void {
-  Object.assign(state, createInitialState())
+/** Removes the persisted `currentStep` from `sessionStorage`, if present. Shared by `resetNavigation` and `clearPersistedNavigation` — see the latter's doc for why they're split. */
+function removePersistedNavigation(): void {
   try {
     sessionStorage.removeItem(STORAGE_KEY)
   } catch {
@@ -112,11 +104,37 @@ function resetNavigation(): void {
   }
 }
 
+/**
+ * Clears only the persisted `currentStep`, leaving in-memory navigation
+ * state (including `isComplete`) untouched. Used when the Success screen
+ * mounts, paired with `useRegistrationStore`'s `clearPersistedRegistration`
+ * — a refresh from there should start the wizard over at Step 1 instead of
+ * resurrecting the just-submitted step/data. Calling the full
+ * `resetNavigation` here instead would flip `isComplete` back to `false`
+ * immediately and kick the user off the success screen they're still on.
+ */
+function clearPersistedNavigation(): void {
+  removePersistedNavigation()
+}
+
+/**
+ * Resets navigation back to the first step, both in memory and in
+ * `sessionStorage`. Used by the Success screen's "Back to Home" action,
+ * once the user is actually navigating away (unlike `clearPersistedNavigation`,
+ * which leaves the in-memory state alone so the success screen it's called
+ * from doesn't unmount itself).
+ */
+function resetNavigation(): void {
+  Object.assign(state, createInitialState())
+  removePersistedNavigation()
+}
+
 const actions = {
   goNext,
   goBack,
   goToStep,
   markComplete,
+  clearPersistedNavigation,
   resetNavigation,
 }
 
