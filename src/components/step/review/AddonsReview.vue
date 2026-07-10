@@ -26,7 +26,10 @@ interface AddonRow {
 const merchandiseSizeErrors = computed(() =>
   navigationState.hasAttemptedSubmit ? result.value.merchandiseSizeErrors : new Set<string>(),
 )
-const hasAnyError = computed(() => merchandiseSizeErrors.value.size > 0)
+const workshopConflictIds = computed(() =>
+  navigationState.hasAttemptedSubmit ? result.value.workshopConflictIds : new Set<string>(),
+)
+const hasAnyError = computed(() => merchandiseSizeErrors.value.size > 0 || workshopConflictIds.value.size > 0)
 
 // One flat list across all three add-on categories — same {label, value}
 // row shape as the workshop-only version, just filtered/mapped per
@@ -37,7 +40,12 @@ const addonRows = computed<AddonRow[]>(() => {
 
   const workshops: AddonRow[] = addons
     .filter((addon): addon is WorkshopAddon => addon.category === 'workshop' && state.selectedWorkshopIds.has(addon.id))
-    .map(addon => ({ id: addon.id, label: 'Workshop', value: `${addon.name} (${formatCurrency(addon.price)})` }))
+    .map(addon => ({
+      id: addon.id,
+      label: 'Workshop',
+      value: `${addon.name} (${formatCurrency(addon.price)})`,
+      errorNote: workshopConflictIds.value.has(addon.id) ? ' (time conflict)' : undefined,
+    }))
 
   const meals: AddonRow[] = addons
     .filter((addon): addon is MealAddon => addon.category === 'meal' && state.selectedMealIds.has(addon.id))
