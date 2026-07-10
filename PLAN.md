@@ -58,7 +58,7 @@ type + lint gates:
     (see below). `stepper/` components never import each other or reach into
     domain folders; composition happens in `IndexPage.vue`. Full discussion:
     [journal 06](docs/journal/06-stepper-components.md).
-- **Phase 3 — Steps 1–4** _(in progress)_ — attendee info, session selection,
+- **Phase 3 — Steps 1–4** _(done)_ — attendee info, session selection,
   add-ons, review.
   - **Step 1 (done)** — ticket selection + attendee form, wired to
     `useRegistrationStore`.
@@ -78,15 +78,31 @@ type + lint gates:
     `utils/`, ahead of Phase 4's own validation work, since Step 3's running
     total needs the pricing math now. Full discussion:
     [journal 08](docs/journal/08-step3-addons.md).
-  - **Step 4 (not started)** — a first pass at wiring Step 4's submit → validate
-    → `errorSteps` → stepper/footer flow was built, then deliberately
-    discarded to build the happy-path review UI (summary blocks, Order
-    Summary, Edit buttons) first and revisit validation once there's a real
-    screen to display errors against. The dependency choice made ahead of
-    that (plain functions vs. zod) is kept — see
-    [journal 09](docs/journal/09-validation-approach.md).
-- **Phase 4 — Cross-cutting logic** — pricing, time-conflict detection, unified
-  validation.
+  - **Step 4 (done)** — built in two passes. First, the happy-path review
+    screen (per-section `AttendeeReview`/`SessionsReview`/`AddonsReview`/
+    `PricingSummary`, each self-wrapping its own `ReviewSection` with an
+    Edit-back link) plus a dynamic post-submit success screen, once the
+    discarded first validation attempt (journal 09) was set aside to build
+    against a real screen instead of a guessed one. Second, the actual
+    unified validation: one pure `validateRegistration()` plus a live
+    `useRegistrationValidation()` composable driving error UI across the
+    stepper, the Review page, and each step's own form, gated on a
+    `hasAttemptedSubmit` flag so nothing is flagged before the first
+    Submit click. Scope ended up narrower than the README's literal text
+    (Step 1 fields + email format + merchandise-size-required only — no
+    Step 2/3 conflict re-checks), by explicit direction. Full discussion,
+    including a real bug (`hasAttemptedSubmit` originally cleared on
+    navigation, which broke "jump to the failing step to fix it" on
+    arrival) and why zod was rejected again with the narrower scope in
+    hand: [journal 10](docs/journal/10-step4-review-and-validation.md).
+- **Phase 4 — Cross-cutting logic** _(done, folded into Steps 3–4 as they
+  landed rather than run separately)_ — pricing (`calculateOrderSummary`,
+  journal 08) and unified validation (journal 10) both ended up built
+  alongside the step that first needed them instead of as a later,
+  separate pass. Time-conflict detection is UI-level only (Step 2/3 cards
+  disable rather than warn-and-flag — see the Step 2 decision row below);
+  it is not re-verified at Step 4 submit time, a deliberate scope
+  reduction recorded in journal 10.
 - **Phase 5 — Polish** — design-fidelity pass, states, transitions.
   - **To revisit here:** `text-h1`–`text-h4` already have a built-in RWD
     effect from the starter scaffold — `src/css/typography.scss` swaps the
@@ -113,7 +129,7 @@ type + lint gates:
 | Store state exposed via `readonly()`; all mutation through named actions | Single choke point for every state change — confirmed at the type level (not just Vue's runtime proxy) that direct mutation from outside the store fails to compile. |
 | Workshop conflict check compares both workshop-vs-session and workshop-vs-workshop | README only requires workshop-vs-session; checking both is more defensive and isn't coincidentally correct just because today's 2 workshops don't share a day. |
 | Merchandise `maxQuantity` enforced by the UI control's `max`, not the store | Keeps the store decoupled from catalog data (`addons.js`) — it never needs to know the bound, only receive already-valid values. |
-| "Submit was attempted and failed" is local Step 4 UI state, not shared/persisted | Simpler UX: leaving Step 4 and returning is treated as a fresh attempt. Fewer state fields to reason about — no shared flag needed at all. |
+| `hasAttemptedSubmit` (Step 4's "a submit was tried and failed" flag) is non-persisted UI state that stays `true` across navigation, cleared only by a full reset | Revised after building the real flow: the original plan (clear it on every `goNext`/`goBack`/`goToStep`, so leaving Step 4 counts as a fresh attempt) was written for the discarded first pass in journal 09 and never tested against an actual navigate-to-fix-it interaction. Once built, it broke exactly that — clicking "Edit → Step 1" from a failed Review page cleared the flag before Step 1 could render its own red state. The underlying validation result is already live, so nothing needs the flag to reset on navigation to behave correctly. See [journal 10](docs/journal/10-step4-review-and-validation.md). |
 | Store's action functions get full JSDoc (`@param`/`@returns`) | They're the store's entire public API — every step component calls through them, so complete docs pay off in IDE tooltips, per the `CLAUDE.md` composable-documentation rule. |
 | Registration state persisted to `sessionStorage` (not `localStorage`), auto-saved via a deep watcher | Survives a page refresh within the tab (the actual trigger) without accumulating stale drafts across browser sessions the way `localStorage` would. `Set` fields are converted to arrays only at the storage boundary — the in-memory type is unchanged. |
 | `src/services/` data-access layer, `async`-shaped, built in Phase 1 rather than deferred | Real chance this becomes an actual API integration later; async-shaped services mean that change touches only the service internals, not every caller. Doing it now (alongside `src/types/`) avoids a second refactor once components already depend on `mocks/` directly. |
@@ -131,7 +147,14 @@ type + lint gates:
 | `AddonCard.vue` handles both workshops and meals (branches on `addon.category` internally for the time/conflict/capacity bits); merchandise gets its own `MerchandiseCard.vue` | Workshops/meals share the same interaction model (click the card to toggle) that `AddonCard` already generalizes; merchandise's quantity stepper + size `<select>` are real nested interactive controls, which can't live inside one big clickable `<button>` the way the other two do. |
 | VIP's 10% workshop discount is its own summary line, not folded into each workshop's displayed price | Keeps the discount visible/auditable rather than silently changing per-item numbers — matches the README's "ticket price, add-ons, VIP discount, total" as separate concerns. |
 | `calculateOrderSummary`/`formatCurrency` built now (nominally "Phase 4 — pricing") rather than deferred | Step 3's own Order Summary requirement needs a live running total immediately; the phase label was about when validation/pricing get hardened, not a hard gate on when the math can exist. |
-| Plain validation functions over zod for Step 4's unified validation | Most of the actual rules (session/workshop time conflicts, merchandise-size-required) need to cross-reference external catalogs (sessions, addons) that live outside the object being validated — not what a schema library validates well. Only Step 1's field checks (required strings, email/phone format) are a natural schema fit, and splitting just that piece into zod would mean reconciling two different validation styles into one result. Revisit if Phase 4's real implementation finds this awkward in practice. |
+| Plain validation functions over zod for Step 4's unified validation | Most of the actual rules (session/workshop time conflicts, merchandise-size-required) need to cross-reference external catalogs (sessions, addons) that live outside the object being validated — not what a schema library validates well. Only Step 1's field checks (required strings, email/phone format) are a natural schema fit, and splitting just that piece into zod would mean reconciling two different validation styles into one result. Reconsidered once the real scope (narrower — see below) landed and rejected again for the same reason: merchandise-size-required still needs the addon catalog, so the cross-referencing problem doesn't go away. |
+| Step 4's real validation scope is narrower than the README's literal text: Step 1 fields (presence + email format only, not phone) and merchandise-size-required only — no Step 2 session-conflict or Step 3 workshop-conflict re-checks at submit time | Explicit direction, not an oversight. The Step 2/3 UI already prevents *creating* a conflicting selection by disabling cards, so a submit-time re-check is defense-in-depth the project chose not to build (yet). Recorded in [journal 10](docs/journal/10-step4-review-and-validation.md) so it reads as a decision if revisited. |
+| One pure `validateRegistration()` returning a granular result (`attendeeErrors`, `attendeeFieldMessages`, `merchandiseSizeErrors`, `errorSteps`, `messages`, `isValid`), wrapped in a stateless `useRegistrationValidation()` computed | Every consumer — stepper, footer, each step's form, each Review section — needs a different *slice* of the same validation, computed live off the same store/catalog. One shared source avoids the step-status bug class from journal 06 (drift between multiple derived copies) recurring for validation. |
+| Step 4's error UI follows an "attempt-then-live" model: nothing shown until the first failed Submit click, then every error clears itself live as its field is fixed, without needing another click | Matches the spec directly and avoids two worse alternatives: showing errors on a blank form before the user has done anything (noisy), or requiring a fresh Submit click after every fix (slow feedback loop). Needs the validation result to always be live (regardless of attempt state) plus one separate boolean (`hasAttemptedSubmit`) gating whether it's *displayed* — conflating the two into one flag can't represent "valid data, never submitted" and "invalid data, already tried" differently. |
+| `FormInput` takes a separate `errorMessage` prop instead of deriving error text from `label` | Caught a real bug: Shipping Address's `label` is `"Shipping Address *"` (form-only suffix), and `` `${label} is required` `` rendered "Shipping Address * is required". The caller now supplies the actual sentence — the same per-field text (`attendeeFieldMessages`) the Review page's summary banner uses, so wording matches everywhere. |
+| Each `step/review/` section owns its own `ReviewSection` wrapper (title + Edit link) instead of `ReviewRegistration.vue` wrapping children from the outside | The externally-wrapped version meant adding a section required editing two files. Self-wrapping makes `ReviewRegistration.vue` a flat list of `<XReview />` tags — adding a section is a one-line change. |
+| `components/review/` (the post-submit screen, journal 05) renamed to `components/result/` | Once Step 4 introduced `components/step/review/` for its own in-wizard content, a second, unrelated top-level `review/` folder was an easy mix-up. `CLAUDE.md` updated to match. |
+| `useRegistrationStore`/`useWizardNavigation` each split their "clear" action in two: `clearPersisted*` (storage only) vs. `reset*` (storage + in-memory) | The Success screen needs both, for different moments: on mount, only `sessionStorage` should clear (so a refresh starts over) while the screen still displays the in-memory data it's showing; "Back to Home" needs the full reset, in memory too, since the user is actually leaving. Conflating them would either blank the success screen the instant it renders or leave stale data after Back to Home. |
 
 Full walk-through against concrete test scenarios:
 [journal 03](docs/journal/03-data-types-and-store.md#test-case-validation-against-registrationstate).
@@ -143,7 +166,8 @@ Full reasoning per decision: [journal 01](docs/journal/01-tooling.md#key-decisio
 [journal 06](docs/journal/06-stepper-components.md),
 [journal 07](docs/journal/07-step2-sessions.md),
 [journal 08](docs/journal/08-step3-addons.md),
-[journal 09](docs/journal/09-validation-approach.md).
+[journal 09](docs/journal/09-validation-approach.md),
+[journal 10](docs/journal/10-step4-review-and-validation.md).
 
 ## 3. Dependencies & why
 
@@ -193,3 +217,7 @@ Details: [journal 01](docs/journal/01-tooling.md#challenges--fixes),
 - Cross-check the 3 corrected color tokens directly against Figma (Dev Mode /
   MCP) rather than relying on hand HSL→RGB conversion.
 - Pull spacing/radius/shadow tokens from Figma once component work needs them.
+- Step 4's validation scope stopped short of the README's literal text —
+  no phone format check, no Step 2/3 conflict re-verification at submit
+  time (the UI already prevents creating one, but a submit-time re-check
+  would be more defensive). Add both if there's time.
