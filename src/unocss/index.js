@@ -51,7 +51,8 @@ export const layoutShortcuts = [{
 }]
 
 export const outlineShortcuts = [{
-  'border-selected': 'outline-2 outline-[var(--border-brand-emphasis)] outline-solid -outline-offset-2'
+  'border-selected': 'outline-2 outline-[var(--border-brand-emphasis)] outline-solid -outline-offset-2',
+  'border-error': 'outline-2 outline-[var(--border-danger-emphasis)] outline-solid -outline-offset-2',
 }]
 
 export const shadowShortcuts = [{

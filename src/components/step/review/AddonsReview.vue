@@ -3,17 +3,30 @@ import { computed } from 'vue'
 import ReviewSection from './ReviewSection.vue'
 import { useRegistrationStore } from 'src/composables/useRegistrationStore'
 import { useAddons } from 'src/composables/useAddons'
+import { useWizardNavigation } from 'src/composables/useWizardNavigation'
+import { useRegistrationValidation } from 'src/composables/useRegistrationValidation'
 import { formatCurrency } from 'src/utils/formatCurrency'
 import type { MealAddon, MerchandiseAddon, WorkshopAddon } from 'src/types/addon'
 
 const { state } = useRegistrationStore()
 const { resource } = useAddons()
+const { state: navigationState } = useWizardNavigation()
+const { result } = useRegistrationValidation()
 
 interface AddonRow {
   id: string
   label: string
   value: string
+  /** Appended after `value` in danger color — `value` itself keeps its normal color even on an errored row. */
+  errorNote?: string
 }
+
+// Only shown once a submit attempt has actually failed — same gating as
+// Step 1's own form.
+const merchandiseSizeErrors = computed(() =>
+  navigationState.hasAttemptedSubmit ? result.value.merchandiseSizeErrors : new Set<string>(),
+)
+const hasAnyError = computed(() => merchandiseSizeErrors.value.size > 0)
 
 // One flat list across all three add-on categories — same {label, value}
 // row shape as the workshop-only version, just filtered/mapped per
@@ -36,11 +49,17 @@ const addonRows = computed<AddonRow[]>(() => {
       .map(addon => [addon.id, addon] as const),
   )
   const merchandise: AddonRow[] = Object.entries(state.merchandiseSelections)
-    .map(([addonId, selection]) => {
+    .map(([addonId, selection]): AddonRow | null => {
       const item = merchandiseById.get(addonId)
       if (!item) return null
+      const hasError = merchandiseSizeErrors.value.has(item.id)
       const sizeLabel = selection.size ? ` (${selection.size})` : ''
-      return { id: item.id, label: 'Merchandise', value: `${item.name}${sizeLabel} × ${selection.quantity} (${formatCurrency(item.price * selection.quantity)})` }
+      return {
+        id: item.id,
+        label: 'Merchandise',
+        value: `${item.name}${sizeLabel} × ${selection.quantity} (${formatCurrency(item.price * selection.quantity)})`,
+        errorNote: hasError ? ' (required for size selection)' : undefined,
+      }
     })
     .filter((row): row is AddonRow => row !== null)
 
@@ -52,6 +71,7 @@ const addonRows = computed<AddonRow[]>(() => {
   <ReviewSection
     title="Add-ons"
     :step-index="3"
+    :error="hasAnyError"
   >
     <div class="flex flex-col gap-y-3">
       <template v-if="addonRows.length > 0">
@@ -61,7 +81,12 @@ const addonRows = computed<AddonRow[]>(() => {
           class="flex items-center justify-between text-body-sm"
         >
           <span class="text-neutral-muted">{{ row.label }}</span>
-          <span class="text-neutral">{{ row.value }}</span>
+          <span>
+            <span class="text-neutral">{{ row.value }}</span><span
+              v-if="row.errorNote"
+              class="text-danger"
+            >{{ row.errorNote }}</span>
+          </span>
         </div>
       </template>
       <template v-else>
