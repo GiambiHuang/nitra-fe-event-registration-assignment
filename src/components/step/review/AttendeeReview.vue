@@ -47,6 +47,7 @@ const fields = computed<AttendeeField[]>(() => {
       value: selectedTicket.value
         ? `${selectedTicket.value.name} (${formatCurrency(selectedTicket.value.price)})`
         : '—',
+      errorKey: 'ticketType',
     },
   ]
   if (requireShippingAddress.value) {
@@ -62,10 +63,10 @@ function isFieldInvalid(errorKey: keyof AttendeeFieldErrors | undefined): boolea
 /**
  * A blank required field renders as empty text otherwise — swaps in a
  * placeholder that says what's missing, once that field is actually
- * invalid. Email is the one field that can be invalid while non-blank
- * (a bad format, not a missing value) — that case gets its own suffix
- * instead of the generic "(required)", which would be misleading since
- * the field isn't actually empty.
+ * invalid. Email and phone are the two fields that can be invalid while
+ * non-blank (a bad format, not a missing value) — that case gets its own
+ * suffix instead of the generic "(required)", which would be misleading
+ * since the field isn't actually empty.
  */
 function displayValue(field: AttendeeField): string {
   if (!isFieldInvalid(field.errorKey)) return field.value
@@ -74,7 +75,7 @@ function displayValue(field: AttendeeField): string {
   if (isBlank) {
     return field.errorKey === 'shippingAddress' ? '— (required for merchandise)' : '— (required)'
   }
-  if (field.errorKey === 'email') {
+  if (field.errorKey === 'email' || field.errorKey === 'phone') {
     return `${field.value} (invalid format)`
   }
   return `${field.value} (required)`

@@ -23,12 +23,12 @@ const isUnavailable = computed(() => isFull.value || hasConflict)
   <button
     type="button"
     :disabled="isUnavailable"
-    class="flex flex-col gap-y-2 p-4 rounded-md border border-neutral-muted border-solid text-left shadow-card"
+    class="flex flex-col gap-y-2 p-4 rounded-md border border-neutral-muted border-solid text-left shadow-card transition-colors"
     :class="isUnavailable
       ? 'bg-surface-l2'
       : selected
         ? 'border-selected bg-brand-muted-rest cursor-pointer'
-        : 'bg-surface-l0 cursor-pointer'"
+        : 'bg-surface-l0 hover:bg-surface-l2 cursor-pointer'"
     @click="emit('toggle')"
   >
     <div class="flex items-center justify-between">

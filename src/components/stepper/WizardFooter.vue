@@ -44,7 +44,7 @@ function handleNext(): void {
       <div class="flex justify-start">
         <button
           v-show="state.currentStep > 1"
-          class="bg-neutral-muted-rest border-0 text-body-sm lg:text-subtitle2 text-neutral-muted h-8 lg:h-10 px-4 rounded-md lg:rounded-[10px] cursor-pointer"
+          class="bg-neutral-muted-rest hover:bg-neutral-muted-hover border-0 text-body-sm lg:text-subtitle2 text-neutral-muted h-8 lg:h-10 px-4 rounded-md lg:rounded-[10px] cursor-pointer transition-colors"
           @click="goBack"
         >
           Back
@@ -52,7 +52,7 @@ function handleNext(): void {
       </div>
       <div class="flex justify-end">
         <button
-          class="bg-accent-emphasis-rest w-auto border-0 text-body-sm lg:text-subtitle2 text-inverse h-8 lg:h-10 px-4 rounded-md lg:rounded-[10px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          class="bg-accent-emphasis-rest hover:bg-accent-emphasis-hover w-auto border-0 text-body-sm lg:text-subtitle2 text-inverse h-8 lg:h-10 px-4 rounded-md lg:rounded-[10px] cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-accent-emphasis-rest"
           :disabled="isSubmitDisabled"
           @click="handleNext"
         >

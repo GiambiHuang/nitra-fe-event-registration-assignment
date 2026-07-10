@@ -88,13 +88,15 @@ type + lint gates:
     `useRegistrationValidation()` composable driving error UI across the
     stepper, the Review page, and each step's own form, gated on a
     `hasAttemptedSubmit` flag so nothing is flagged before the first
-    Submit click. Scope ended up narrower than the README's literal text
-    (Step 1 fields + email format + merchandise-size-required only — no
-    Step 2/3 conflict re-checks), by explicit direction. Full discussion,
-    including a real bug (`hasAttemptedSubmit` originally cleared on
-    navigation, which broke "jump to the failing step to fix it" on
-    arrival) and why zod was rejected again with the narrower scope in
-    hand: [journal 10](docs/journal/10-step4-review-and-validation.md).
+    Submit click. Full discussion, including a real bug
+    (`hasAttemptedSubmit` originally cleared on navigation, which broke
+    "jump to the failing step to fix it" on arrival) and why zod was
+    rejected again with the initial narrower scope in hand:
+    [journal 10](docs/journal/10-step4-review-and-validation.md). A later
+    pass against the grading rubric added back phone format and the Step
+    2/3 conflict re-checks that journal 10's scope had cut, plus a genuine
+    gap (ticket-type-required was never validated at all) — see the
+    updated decision row below.
 - **Phase 4 — Cross-cutting logic** _(done, folded into Steps 3–4 as they
   landed rather than run separately)_ — pricing (`calculateOrderSummary`,
   journal 08) and unified validation (journal 10) both ended up built
@@ -169,7 +171,7 @@ type + lint gates:
 | VIP's 10% workshop discount is its own summary line, not folded into each workshop's displayed price | Keeps the discount visible/auditable rather than silently changing per-item numbers — matches the README's "ticket price, add-ons, VIP discount, total" as separate concerns. |
 | `calculateOrderSummary`/`formatCurrency` built now (nominally "Phase 4 — pricing") rather than deferred | Step 3's own Order Summary requirement needs a live running total immediately; the phase label was about when validation/pricing get hardened, not a hard gate on when the math can exist. |
 | Plain validation functions over zod for Step 4's unified validation | Most of the actual rules (session/workshop time conflicts, merchandise-size-required) need to cross-reference external catalogs (sessions, addons) that live outside the object being validated — not what a schema library validates well. Only Step 1's field checks (required strings, email/phone format) are a natural schema fit, and splitting just that piece into zod would mean reconciling two different validation styles into one result. Reconsidered once the real scope (narrower — see below) landed and rejected again for the same reason: merchandise-size-required still needs the addon catalog, so the cross-referencing problem doesn't go away. |
-| Step 4's real validation scope is narrower than the README's literal text: Step 1 fields (presence + email format only, not phone) and merchandise-size-required only — no Step 2 session-conflict or Step 3 workshop-conflict re-checks at submit time | Explicit direction, not an oversight. The Step 2/3 UI already prevents *creating* a conflicting selection by disabling cards, so a submit-time re-check is defense-in-depth the project chose not to build (yet). Recorded in [journal 10](docs/journal/10-step4-review-and-validation.md) so it reads as a decision if revisited. |
+| Step 4's validation now covers phone format and Step 2/3 conflict re-checks, reversing journal 10's scope cut, plus fixes a genuine gap (ticket type was never validated as required) | Revisited against the grading rubric, which explicitly weights "Unified validation on submit" and JS-logic correctness — the README also literally asks for both. The conflict re-checks still can only fire from state that bypassed the Step 2/3 UI (tampered `sessionStorage`, or a future UI bug) since normal clicking can never produce a conflicting selection; kept for spec compliance and defense-in-depth despite that. Verified by seeding a conflicting pair directly into `sessionStorage`, since it's otherwise unreachable through the UI. `SessionCard`/`AddonCard` deliberately do **not** gain their own "you're revisiting after a failed submit" styling — the stepper's red step + Review page's red section/row + working Edit-link navigation already satisfies the rubric's literal wording, and the destination cards can't be reached by a real user anyway. |
 | One pure `validateRegistration()` returning a granular result (`attendeeErrors`, `attendeeFieldMessages`, `merchandiseSizeErrors`, `errorSteps`, `messages`, `isValid`), wrapped in a stateless `useRegistrationValidation()` computed | Every consumer — stepper, footer, each step's form, each Review section — needs a different *slice* of the same validation, computed live off the same store/catalog. One shared source avoids the step-status bug class from journal 06 (drift between multiple derived copies) recurring for validation. |
 | Step 4's error UI follows an "attempt-then-live" model: nothing shown until the first failed Submit click, then every error clears itself live as its field is fixed, without needing another click | Matches the spec directly and avoids two worse alternatives: showing errors on a blank form before the user has done anything (noisy), or requiring a fresh Submit click after every fix (slow feedback loop). Needs the validation result to always be live (regardless of attempt state) plus one separate boolean (`hasAttemptedSubmit`) gating whether it's *displayed* — conflating the two into one flag can't represent "valid data, never submitted" and "invalid data, already tried" differently. |
 | `FormInput` takes a separate `errorMessage` prop instead of deriving error text from `label` | Caught a real bug: Shipping Address's `label` is `"Shipping Address *"` (form-only suffix), and `` `${label} is required` `` rendered "Shipping Address * is required". The caller now supplies the actual sentence — the same per-field text (`attendeeFieldMessages`) the Review page's summary banner uses, so wording matches everywhere. |
@@ -178,6 +180,7 @@ type + lint gates:
 | `useRegistrationStore`/`useWizardNavigation` each split their "clear" action in two: `clearPersisted*` (storage only) vs. `reset*` (storage + in-memory) | The Success screen needs both, for different moments: on mount, only `sessionStorage` should clear (so a refresh starts over) while the screen still displays the in-memory data it's showing; "Back to Home" needs the full reset, in memory too, since the user is actually leaving. Conflating them would either blank the success screen the instant it renders or leave stale data after Back to Home. |
 | RWD pass overrides typography per component (e.g. `MainHeader`'s title is `text-subtitle2 md:text-h4`) rather than extending `subtitle`/`body-*` tokens with their own breakpoint media queries | Matches how `text-h1`–`text-h4` already scale (a scaffold-level CSS-variable swap in `typography.scss`), without touching shared token definitions that every other `subtitle`/`body-*` usage in the app also depends on — a per-call-site override only affects the one place that needs it. |
 | RWD pass uses UnoCSS's default `sm`/`md`/`lg` breakpoint prefixes throughout, left alongside the project's existing named `tablet`(768px)/`desktop`(1024px) breakpoints rather than consolidating | `sm`/`md`/`lg` and `tablet`/`desktop` are numerically identical at the two values both define (768px/1024px), so nothing conflicts — but `sm`'s 640px tier (used for stepper-label visibility) has no named counterpart yet. Renaming everything into one system would mean inventing that name now; left as a known inconsistency instead. |
+| Hover states use the already-defined `-hover` tokens (`hover:bg-brand-emphasis-hover` etc.) or the next `bg-surface-l*` level up where no dedicated token exists, scoped to a project-wide pass rather than added component-by-component as each was built | ~30 `-hover` tokens existed in `semantic.js` completely unused — every card/button/tab had a `cursor-pointer` with no actual visual feedback. Deliberately narrower than the fuller animation/transition/skeleton work also identified in the same audit (still open, tracked in "What I'd improve"); selected/disabled/conflict states keep their existing styling untouched, hover only applies to the plain interactive case. |
 
 Full walk-through against concrete test scenarios:
 [journal 03](docs/journal/03-data-types-and-store.md#test-case-validation-against-registrationstate).
@@ -251,21 +254,17 @@ Details: [journal 01](docs/journal/01-tooling.md#challenges--fixes),
 - Cross-check the 3 corrected color tokens directly against Figma (Dev Mode /
   MCP) rather than relying on hand HSL→RGB conversion.
 - Pull spacing/radius/shadow tokens from Figma once component work needs them.
-- Step 4's validation scope stopped short of the README's literal text —
-  no phone format check, no Step 2/3 conflict re-verification at submit
-  time (the UI already prevents creating one, but a submit-time re-check
-  would be more defensive). Add both if there's time.
 - **i18n.** All copy is hardcoded English strings scattered across
   components — no `vue-i18n`/message-catalog layer at all. Fine for a
   single-locale assignment, but real internationalization would mean
   extracting every string first, which is a much bigger refactor to do
   after the fact than to have designed in from the start.
-- **Animation/transition polish.** Step changes, card selection, and
-  error states currently all snap instantly — no `<Transition>` on step
-  content swaps, no micro-interaction on hover/press for
-  cards/buttons/tabs, no loading-skeleton in place of the plain
-  "Loading…" text. Would meaningfully improve perceived quality without
-  touching any logic.
+- **Animation/transition polish.** Hover states landed (see decision
+  table), but step changes, card selection, and error states still all
+  snap instantly beyond that — no `<Transition>` on step content swaps
+  besides the one existing fade, no press/active micro-interaction, no
+  loading-skeleton in place of the plain "Loading…" text. Would
+  meaningfully improve perceived quality without touching any logic.
 - **More interaction feedback generally** — e.g. a brief success flash
   when a field self-corrects (an error clearing live as you type,
   Step 4's whole point), subtler focus/active states than the current

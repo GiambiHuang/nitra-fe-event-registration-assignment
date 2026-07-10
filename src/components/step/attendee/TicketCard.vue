@@ -14,10 +14,10 @@ const emit = defineEmits<{
 <template>
   <button
     type="button"
-    class="flex max-lg:w-full flex-col gap-y-3 flex-1 p-5 rounded-md border border-neutral-muted border-solid cursor-pointer min-h-[288px] shadow-card"
+    class="flex max-lg:w-full flex-col gap-y-3 flex-1 p-5 rounded-md border border-neutral-muted border-solid cursor-pointer min-h-[288px] shadow-card transition-colors"
     :class="{
       'border-selected bg-brand-muted-rest': selected,
-      'bg-surface-l1': !selected
+      'bg-surface-l1 hover:bg-surface-l2': !selected
     }"
     @click="emit('select')"
   >
