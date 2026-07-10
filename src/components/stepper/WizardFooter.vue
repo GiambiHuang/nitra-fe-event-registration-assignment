@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useWizardNavigation, type WizardStep } from 'src/composables/useWizardNavigation'
+import { useRegistrationStore } from 'src/composables/useRegistrationStore'
+import { isAttendeeInfoComplete } from 'src/utils/registrationRules'
 
-const { goBack, goNext, state } = useWizardNavigation()
+const { goBack, goNext, markComplete, state } = useWizardNavigation()
+const { state: registrationState } = useRegistrationStore()
 
 const NEXT_LABELS: Record<WizardStep, string> = {
   1: 'Next: Session Selection',
@@ -12,6 +15,22 @@ const NEXT_LABELS: Record<WizardStep, string> = {
 }
 
 const nextLabel = computed(() => NEXT_LABELS[state.currentStep])
+
+/**
+ * Advances to the next step, except on Step 4 where the button submits
+ * instead — gated on attendee info being complete. Silently blocked if
+ * not (no error UI yet, see journal 09 for the fuller validation planned
+ * on top of this).
+ */
+function handleNext(): void {
+  if (state.currentStep === 4) {
+    if (isAttendeeInfoComplete(registrationState)) {
+      markComplete()
+    }
+    return
+  }
+  goNext()
+}
 </script>
 
 <template>
@@ -29,7 +48,7 @@ const nextLabel = computed(() => NEXT_LABELS[state.currentStep])
       <div class="flex-1 flex justify-end">
         <button
           class="bg-accent-emphasis-rest border-0 text-subtitle2 text-inverse h-10 px-4 rounded-[10px] cursor-pointer"
-          @click="goNext"
+          @click="handleNext"
         >
           {{ nextLabel }}
         </button>
