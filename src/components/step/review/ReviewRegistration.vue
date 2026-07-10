@@ -2,6 +2,7 @@
 import AttendeeReview from './AttendeeReview.vue';
 import SessionsReview from './SessionsReview.vue';
 import AddonsReview from './AddonsReview.vue';
+import PricingSummary from './PricingSummary.vue';
 </script>
 
 <template>
@@ -13,6 +14,7 @@ import AddonsReview from './AddonsReview.vue';
       <AttendeeReview />
       <SessionsReview />
       <AddonsReview />
+      <PricingSummary />
     </div>
   </div>
 </template>
