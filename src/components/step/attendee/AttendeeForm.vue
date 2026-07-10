@@ -28,7 +28,7 @@ const attendeeFieldMessages = computed(() =>
       Attendee Information
     </div>
     <div class="flex flex-col gap-y-5 mt-8">
-      <div class="grid grid-cols-1 gap-y-5 gap-x-6 md:grid-cols-2">
+      <div class="grid grid-cols-1 gap-y-5 gap-x-6 lg:grid-cols-2">
         <FormInput
           label="Full Name"
           placeholder="Enter your full name"

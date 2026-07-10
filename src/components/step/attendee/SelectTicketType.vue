@@ -15,7 +15,7 @@ const ticketTypes = computed(() => resource.value.status === 'success' ? resourc
     <div class="text-subtitle1">
       Select Ticket Type
     </div>
-    <div class="flex items-start gap-4 mt-4">
+    <div class="flex flex-col lg:flex-row items-start gap-4 mt-4">
       <TicketCard
         v-for="ticket in ticketTypes"
         :key="ticket.id"

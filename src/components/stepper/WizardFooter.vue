@@ -41,18 +41,18 @@ function handleNext(): void {
 <template>
   <div class="h-[72px] flex items-center justify-center flex-shrink-0 box-content border-0 border-t divider-default border-solid">
     <div class="flex items-center justify-between page-container box-border">
-      <div class="flex-1 flex justify-start">
+      <div class="flex justify-start">
         <button
           v-show="state.currentStep > 1"
-          class="bg-neutral-muted-rest border-0 text-subtitle2 text-neutral-muted h-10 px-4 rounded-[10px] cursor-pointer"
+          class="bg-neutral-muted-rest border-0 text-body-sm lg:text-subtitle2 text-neutral-muted h-8 lg:h-10 px-4 rounded-md lg:rounded-[10px] cursor-pointer"
           @click="goBack"
         >
           Back
         </button>
       </div>
-      <div class="flex-1 flex justify-end">
+      <div class="flex justify-end">
         <button
-          class="bg-accent-emphasis-rest border-0 text-subtitle2 text-inverse h-10 px-4 rounded-[10px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          class="bg-accent-emphasis-rest w-auto border-0 text-body-sm lg:text-subtitle2 text-inverse h-8 lg:h-10 px-4 rounded-md lg:rounded-[10px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           :disabled="isSubmitDisabled"
           @click="handleNext"
         >

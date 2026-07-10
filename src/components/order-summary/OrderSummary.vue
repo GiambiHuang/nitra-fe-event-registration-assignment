@@ -37,7 +37,7 @@ const summary = computed(() => {
     >
       <div
         v-if="summary.ticket"
-        class="flex items-center justify-between text-body-sm text-neutral-muted"
+        class="flex items-start justify-between gap-x-2 flex-nowrap text-body-sm text-neutral-muted"
       >
         <span>{{ summary.ticket.label }} Ticket</span>
         <span>{{ formatCurrency(summary.ticket.total) }}</span>
@@ -46,7 +46,7 @@ const summary = computed(() => {
       <div
         v-for="line in summary.workshops"
         :key="line.id"
-        class="flex items-center justify-between text-body-sm text-neutral-muted"
+        class="flex items-start justify-between gap-x-2 flex-nowrap text-body-sm text-neutral-muted"
       >
         <span>{{ line.label }}</span>
         <span>{{ formatCurrency(line.total) }}</span>
@@ -55,7 +55,7 @@ const summary = computed(() => {
       <div
         v-for="line in summary.meals"
         :key="line.id"
-        class="flex items-center justify-between text-body-sm text-neutral-muted"
+        class="flex items-start justify-between gap-x-2 flex-nowrap text-body-sm text-neutral-muted"
       >
         <span>{{ line.label }}</span>
         <span>{{ formatCurrency(line.total) }}</span>
@@ -64,7 +64,7 @@ const summary = computed(() => {
       <div
         v-for="line in summary.merchandise"
         :key="line.id"
-        class="flex items-center justify-between text-body-sm text-neutral-muted"
+        class="flex items-start justify-between gap-x-2 flex-nowrap text-body-sm text-neutral-muted"
       >
         <span>{{ line.label }} × {{ line.quantity }}</span>
         <span>{{ formatCurrency(line.total) }}</span>
@@ -72,7 +72,7 @@ const summary = computed(() => {
 
       <div
         v-if="summary.workshopDiscount > 0"
-        class="flex items-center justify-between text-body-xs text-brand-emphasis"
+        class="flex items-start justify-between gap-x-2 flex-nowrap text-body-xs text-brand-emphasis"
       >
         <span>Workshop Discount (VIP 10%)</span>
         <span>-{{ formatCurrency(summary.workshopDiscount) }}</span>

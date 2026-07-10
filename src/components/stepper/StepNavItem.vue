@@ -13,7 +13,7 @@ const emit = defineEmits<{
 <template>
   <button
     type="button"
-    class="flex items-center gap-2.5 border-0 bg-transparent cursor-pointer p-0"
+    class="flex flex-col gap-y-1 lg:flex-row items-center gap-2.5 border-0 bg-transparent cursor-pointer p-0"
     :aria-current="step.status === 'active' ? 'step' : undefined"
     @click="emit('click')"
   >
@@ -36,7 +36,7 @@ const emit = defineEmits<{
       <span v-else>{{ step.index }}</span>
     </div>
     <span
-      class="max-lg:hidden"
+      class="max-sm:hidden"
       :class="step.labelClass"
     >
       {{ step.label }}

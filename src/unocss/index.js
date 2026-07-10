@@ -47,7 +47,7 @@ export const typographyShortcuts = [{
 // stepper, step content, footer, ...). RWD variants can extend this string
 // later (e.g. `lt-tablet:px-6`) without touching any call site.
 export const layoutShortcuts = [{
-  'page-container': 'w-full max-w-[1440px] px-[120px]',
+  'page-container': 'w-full max-w-[1440px] px-[32px] lg:px-[120px]',
 }]
 
 export const outlineShortcuts = [{

@@ -32,7 +32,7 @@ const isUnavailable = computed(() => isFull.value || hasConflict)
     @click="emit('toggle')"
   >
     <div class="flex items-center justify-between">
-      <span class="text-subtitle2">{{ addon.name }}</span>
+      <span class="text-subtitle2 text-neutral">{{ addon.name }}</span>
       <span class="text-subtitle2 text-brand-emphasis">{{ formatCurrency(addon.price) }}</span>
     </div>
     <div class="text-body-sm text-neutral-muted">

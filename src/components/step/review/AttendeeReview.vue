@@ -91,10 +91,13 @@ function displayValue(field: AttendeeField): string {
       <div
         v-for="field in fields"
         :key="field.label"
-        class="flex items-center justify-between text-body-sm"
+        class="flex items-start flex-nowrap gap-x-2 justify-between text-body-sm"
       >
-        <span class="text-neutral-muted">{{ field.label }}</span>
-        <span :class="isFieldInvalid(field.errorKey) ? 'text-danger' : 'text-neutral'">{{ displayValue(field) }}</span>
+        <span class="text-neutral-muted whitespace-nowrap">{{ field.label }}</span>
+        <span
+          class="text-right"
+          :class="isFieldInvalid(field.errorKey) ? 'text-danger' : 'text-neutral'"
+        >{{ displayValue(field) }}</span>
       </div>
     </div>
   </ReviewSection>

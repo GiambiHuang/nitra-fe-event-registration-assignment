@@ -67,7 +67,7 @@ const activeGroup = computed(() => sessionsByDate.value.find(group => group.date
           v-for="group in sessionsByDate"
           :key="group.date"
           type="button"
-          class="flex items-center justify-center text-subtitle2 border-0 outline-0 font-[13px] h-8 w-[83px] rounded-lg cursor-pointer"
+          class="flex items-center justify-center text-body-xs lg:text-subtitle2 border-0 outline-0 font-[13px] h-8 w-[83px] rounded-lg cursor-pointer"
           :class="group.date === activeDate ? 'bg-brand-emphasis-rest text-inverse' : 'border-transparent text-neutral-muted'"
           @click="manuallySelectedDate = group.date"
         >

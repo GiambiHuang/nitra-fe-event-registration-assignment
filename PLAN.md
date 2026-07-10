@@ -103,17 +103,38 @@ type + lint gates:
   disable rather than warn-and-flag — see the Step 2 decision row below);
   it is not re-verified at Step 4 submit time, a deliberate scope
   reduction recorded in journal 10.
-- **Phase 5 — Polish** — design-fidelity pass, states, transitions.
-  - **To revisit here:** `text-h1`–`text-h4` already have a built-in RWD
-    effect from the starter scaffold — `src/css/typography.scss` swaps the
-    `--font-size-h*`/`--line-height-h*` CSS variables at `max-width: 1023px`
-    (h4: 20px/24px → 18px/24px, etc.), so those shortcuts shrink automatically
-    below the `desktop: 1024px` breakpoint already defined in
-    `src/unocss/index.js`. `subtitle1`/`subtitle2`/`body-*` have no such
-    media query and stay fixed. Noted 2026-07-09 when a heading looked
-    smaller than expected below 1024px — not a bug, but worth deciding
-    deliberately (keep / extend to more tokens / override) once the RWD pass
-    actually happens instead of leaving it as an unexamined scaffold default.
+- **Phase 5 — Polish** _(RWD pass done; transitions/states still open)_ —
+  design-fidelity pass, states, transitions.
+  - **RWD pass (done)** — mobile/tablet layout across the whole wizard:
+    stepper labels collapse to icon-only below `sm`, ticket cards and the
+    stepper nav item stack vertically below `lg`, category/day tabs and
+    footer buttons scale down their text/height, `page-container` padding
+    steps down, and Review-page rows switch to `items-start` +
+    `whitespace-nowrap` labels so long values wrap under the label instead
+    of squeezing it. Resolves the "to revisit" note below by taking the
+    per-component-override approach (`MainHeader`'s title becomes
+    `text-subtitle2 md:text-h4`, not a `text-h4` media-query extension) —
+    `subtitle`/`body-*` tokens still have no built-in RWD scaling of their
+    own, this pass overrides them per call site instead of touching the
+    token definitions.
+  - **Known inconsistency, deliberately not resolved here:** the RWD pass
+    uses UnoCSS's default `sm`(640px)/`md`(768px)/`lg`(1024px) prefixes
+    throughout, but the project already had named breakpoints
+    `tablet`(768px)/`desktop`(1024px) (`src/unocss/index.js`) —
+    `page-container`'s own comment even suggested extending it with
+    `lt-tablet:`. Both systems now coexist (numerically identical at
+    768/1024, so nothing conflicts); `sm`'s 640px tier has no named
+    counterpart yet. Left as-is rather than renaming everything without a
+    decided name for the 640px tier — revisit if a third breakpoint system
+    is ever needed.
+  - **Original note (2026-07-09), now resolved above:** `text-h1`–`text-h4`
+    already have a built-in RWD effect from the starter scaffold —
+    `src/css/typography.scss` swaps the `--font-size-h*`/`--line-height-h*`
+    CSS variables at `max-width: 1023px` (h4: 20px/24px → 18px/24px, etc.),
+    so those shortcuts shrink automatically below the `desktop: 1024px`
+    breakpoint. `subtitle1`/`subtitle2`/`body-*` have no such media query
+    and stay fixed — the RWD pass above worked around this per-component
+    rather than extending the token definitions.
 
 ## 2. Key decisions
 
@@ -155,6 +176,8 @@ type + lint gates:
 | Each `step/review/` section owns its own `ReviewSection` wrapper (title + Edit link) instead of `ReviewRegistration.vue` wrapping children from the outside | The externally-wrapped version meant adding a section required editing two files. Self-wrapping makes `ReviewRegistration.vue` a flat list of `<XReview />` tags — adding a section is a one-line change. |
 | `components/review/` (the post-submit screen, journal 05) renamed to `components/result/` | Once Step 4 introduced `components/step/review/` for its own in-wizard content, a second, unrelated top-level `review/` folder was an easy mix-up. `CLAUDE.md` updated to match. |
 | `useRegistrationStore`/`useWizardNavigation` each split their "clear" action in two: `clearPersisted*` (storage only) vs. `reset*` (storage + in-memory) | The Success screen needs both, for different moments: on mount, only `sessionStorage` should clear (so a refresh starts over) while the screen still displays the in-memory data it's showing; "Back to Home" needs the full reset, in memory too, since the user is actually leaving. Conflating them would either blank the success screen the instant it renders or leave stale data after Back to Home. |
+| RWD pass overrides typography per component (e.g. `MainHeader`'s title is `text-subtitle2 md:text-h4`) rather than extending `subtitle`/`body-*` tokens with their own breakpoint media queries | Matches how `text-h1`–`text-h4` already scale (a scaffold-level CSS-variable swap in `typography.scss`), without touching shared token definitions that every other `subtitle`/`body-*` usage in the app also depends on — a per-call-site override only affects the one place that needs it. |
+| RWD pass uses UnoCSS's default `sm`/`md`/`lg` breakpoint prefixes throughout, left alongside the project's existing named `tablet`(768px)/`desktop`(1024px) breakpoints rather than consolidating | `sm`/`md`/`lg` and `tablet`/`desktop` are numerically identical at the two values both define (768px/1024px), so nothing conflicts — but `sm`'s 640px tier (used for stepper-label visibility) has no named counterpart yet. Renaming everything into one system would mean inventing that name now; left as a known inconsistency instead. |
 
 Full walk-through against concrete test scenarios:
 [journal 03](docs/journal/03-data-types-and-store.md#test-case-validation-against-registrationstate).

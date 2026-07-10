@@ -92,7 +92,7 @@ const badgeClass = computed(() =>
         >
       </div>
     </div>
-    <div class="text-subtitle1">
+    <div class="text-subtitle1 text-neutral">
       {{ session.title }}
     </div>
     <div class="text-body-sm text-neutral-muted">

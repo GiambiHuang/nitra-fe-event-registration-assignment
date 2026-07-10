@@ -78,11 +78,12 @@ const addonRows = computed<AddonRow[]>(() => {
         <div
           v-for="row in addonRows"
           :key="row.id"
-          class="flex items-center justify-between text-body-sm"
+          class="flex items-start flex-nowrap gap-x-2 justify-between text-body-sm"
         >
-          <span class="text-neutral-muted">{{ row.label }}</span>
-          <span>
-            <span class="text-neutral">{{ row.value }}</span><span
+          <span class="text-neutral-muted whitespace-nowrap">{{ row.label }}</span>
+          <span class="text-right">
+            <span class="text-neutral">{{ row.value }}</span>
+            <span
               v-if="row.errorNote"
               class="text-danger"
             >{{ row.errorNote }}</span>
