@@ -4,8 +4,11 @@ import type { WizardStep } from 'src/composables/useWizardNavigation'
 import { isShippingAddressRequired } from 'src/utils/registrationRules'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// Lenient on purpose — digits/spaces/+-() only, at least 7 characters. Not
+// tied to one country's format (the mock data/README don't specify one).
+const PHONE_PATTERN = /^[0-9+\-() ]{7,}$/
 
-/** One boolean per Step 1 field — `true` means that field is currently invalid. */
+/** One boolean per Step 1 field — `true` means that field is currently invalid. Includes `ticketType` (not part of `AttendeeInfo`, but conceptually "Step 1 is incomplete" the same way). */
 export interface AttendeeFieldErrors {
   fullName: boolean
   email: boolean
@@ -13,6 +16,7 @@ export interface AttendeeFieldErrors {
   company: boolean
   jobTitle: boolean
   shippingAddress: boolean
+  ticketType: boolean
 }
 
 /** One human-readable line for the Review page's error summary banner. */
@@ -40,15 +44,16 @@ export interface ValidationResult {
 
 interface RelevantState {
   attendee: RegistrationState['attendee']
+  ticketTypeId: RegistrationState['ticketTypeId']
   merchandiseSelections: RegistrationState['merchandiseSelections']
 }
 
 /**
- * Validates Step 1's attendee fields: all required strings must be
- * non-empty, email must additionally match a basic format, and
- * shippingAddress is only required when `isShippingAddressRequired`. Phone
- * is presence-only — no format check (per spec, only email format matters).
- * @param state - The current registration state (attendee + merchandiseSelections, the latter only to resolve whether shipping is required).
+ * Validates Step 1: all required attendee strings must be non-empty, email
+ * and phone must additionally match a basic format, shippingAddress is only
+ * required when `isShippingAddressRequired`, and a ticket type must be
+ * selected.
+ * @param state - The current registration state (attendee/ticketTypeId/merchandiseSelections — the latter only to resolve whether shipping is required).
  * @returns One boolean per field — `true` means that field is invalid.
  */
 function validateAttendee(state: RelevantState): AttendeeFieldErrors {
@@ -56,10 +61,11 @@ function validateAttendee(state: RelevantState): AttendeeFieldErrors {
   return {
     fullName: fullName.trim().length === 0,
     email: email.trim().length === 0 || !EMAIL_PATTERN.test(email.trim()),
-    phone: phone.trim().length === 0,
+    phone: phone.trim().length === 0 || !PHONE_PATTERN.test(phone.trim()),
     company: company.trim().length === 0,
     jobTitle: jobTitle.trim().length === 0,
     shippingAddress: isShippingAddressRequired(state) && shippingAddress.trim().length === 0,
+    ticketType: state.ticketTypeId === null,
   }
 }
 
@@ -105,10 +111,13 @@ function buildAttendeeFieldMessages(state: RelevantState, attendeeErrors: Attend
   if (attendeeErrors.email) {
     messages.email = state.attendee.email.trim().length === 0 ? 'Email is required' : 'Email format is invalid'
   }
-  if (attendeeErrors.phone) messages.phone = 'Phone number is required'
+  if (attendeeErrors.phone) {
+    messages.phone = state.attendee.phone.trim().length === 0 ? 'Phone number is required' : 'Phone number format is invalid'
+  }
   if (attendeeErrors.company) messages.company = 'Company is required'
   if (attendeeErrors.jobTitle) messages.jobTitle = 'Job title is required'
   if (attendeeErrors.shippingAddress) messages.shippingAddress = 'Shipping address is required for merchandise orders'
+  if (attendeeErrors.ticketType) messages.ticketType = 'Please select a ticket type'
   return messages
 }
 
